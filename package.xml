@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>artec_scanner_robotraconteur_driver</name>
+  <version>0.0.1</version>
+  <description>Robot Raconteur driver for Artec Scanners</description>
+
+  <maintainer email="wason@wasontech.com">John Wason</maintainer>
+
+  <license>Apache 2.0</license>
+
+  <url type="website">http://github.com/johnwason/artec_scanner_robotraconteur_driver</url>
+
+  <author email="wason@wasontech.com">John Wason</author>
+
+  <depend>boost</depend>
+  <depend>robotraconteur</depend>
+  <depend>robotraconteur_companion</depend>
+    
+  <export>    
+    <build_type>cmake</build_type>
+  </export>
+</package>

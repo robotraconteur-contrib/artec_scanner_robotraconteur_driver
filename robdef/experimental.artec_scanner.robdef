@@ -1,0 +1,10 @@
+service experimental.artec_scanner
+
+import com.robotraconteur.geometry.shapes
+
+using com.robotraconteur.geometry.shapes.Mesh
+
+
+object ArtecScanner
+    function Mesh capture(bool with_texture)    
+end
