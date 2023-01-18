@@ -1,10 +1,222 @@
 service experimental.artec_scanner
 
 import com.robotraconteur.geometry.shapes
+import com.robotraconteur.action
 
 using com.robotraconteur.geometry.shapes.Mesh
+using com.robotraconteur.action.ActionStatusCode
 
+enum RegistrationAlgorithmType
+    ICP = 0x0,
+    Hybrid = 0x1,
+    Texture = 0x2, 
+    ForceDword = 0x7fffffff
+end
+
+enum ScanningState
+    Preview = 0,
+    Record,
+    ContinueRecord,
+    Stop, 
+    ForceDword = 0x7fffffff
+end
+
+enum CaptureTextureMethod
+    NoTextures = 0,
+    EveryNFrame,
+    OnTextureKeyFrame,
+    Always,
+    ForceDword = 0x7fffffff
+end
+
+enum ScanningPipeline
+    CaptureOnly          = 0x0,
+    ConvertTextures      = 0x1,
+    CalculateNormals     = 0x2,
+    MapTexture           = 0x4,
+    RegisterFrame        = 0x8,
+    FindGeometryKeyFrame = 0x10,
+    FastCapture          = 0x20
+end
+
+enum GlobalRegistrationType
+    geometry = 0,
+    geometry_and_texture
+end
+
+enum SimplifyType
+    triangle_quantity = 0,
+    accuracy,
+    remesh,
+    triangle_quantity_fast
+end
+
+enum SimplifyMetric
+    edge_length = 0,
+    edge_length_and_angle,
+    distance_to_surface,
+    distance_to_surface_iterative
+end
+
+enum PoissonFusionType
+    sharp = 0,
+    smooth
+end
+
+enum FillHolesType
+    all = 0,
+    by_radius
+end
+
+enum InputFilter
+    use_texture_key_frames = 0,
+    use_all_textures
+end
+
+enum SerialRegistrationType
+    rough = 0,
+    rough_textured,
+    fine,
+    fine_textured
+end
+
+enum SmallObjectFilterType
+    leave_biggest_object = 0,
+    filter_by_threshold
+end
+
+enum TexturizeType
+    advanced = 0,
+    atlas,
+    keep_atlas,
+    vertex_color_to_atlas
+end
+
+enum TexturizeResolution
+    texturize_resolution_512x512 = 0,
+    texturize_resolution_1024x1024,
+    texturize_resolution_2048x2048,
+    texturize_resolution_4096x4096,
+    texturize_resolution_8192x8192,
+    texturize_resolution_16384x16384
+end
+
+struct ScanningProcedureSettings
+    field int32 max_frame_count
+    field RegistrationAlgorithmType registration_type
+    field int32 pipeline_configuration
+    field ScanningState initial_state
+    field bool ignore_registration_errors
+    field CaptureTextureMethod capture_texture
+    field int32 capture_texture_frequency
+    field bool save_empty_surfaces
+    field varvalue{string} extended
+end
+
+struct ScanningProcedureStatus
+   field ActionStatusCode action_status
+   field uint32 workset_handle 
+end
+
+struct ApplyAlgorithmsStatus
+    field ActionStatusCode action_status
+    field uint32 current_algorithm
+end
+
+struct AutoAlignAlgorithm
+    field varvalue{string} extended
+end
+
+struct FastFusionAlgorithm
+    field single resolution
+    field int32 radius
+    field bool generate_normals
+    field varvalue{string} extended
+end
+
+struct FastMeshSimplificationAlgorithm
+    field int32 triangle_number
+    field bool keep_boundary
+    field bool enable_additional_criteria
+    field bool enable_distance_threshold
+    field single distance_threshold
+    field bool enable_angle_threshold
+    field single angle_threshold
+    field bool enable_aspect_ratio_threshold
+    field single aspect_ratio_threshold
+    field varvalue{string} extended
+end
+
+struct GlobalRegistrationAlgorithm
+    field GlobalRegistrationType registration_type
+    field varvalue{string} extended
+end
+
+struct LoopClosureAlgorithm
+    field varvalue{string} extended
+end
+
+struct MeshSimplificationAlgorithm
+    field SimplifyType simplify_type
+    field SimplifyMetric simplify_metrics
+    field int32 triangle_number
+    field bool keep_boundary
+    field single angle_threshold
+    field single remesh_edge_threshold
+    field single error
+    field varvalue{string} extended
+end
+
+struct OutliersRemovalAlgorithm
+    field single standard_deviation_multiplier
+    field single resolution
+    field varvalue{string} extended
+end
+
+struct PoissonFusionSettings
+    field PoissonFusionType fusion_type
+    field FillHolesType fill_type
+    field single resolution
+    field single max_hole_radius
+    field bool remove_targets
+    field single target_inner_size
+    field single target_outer_size
+    field bool generate_normals
+    field InputFilter input_filter_type
+    field varvalue{string} extended
+end
+
+struct SerialRegistrationAlgorithm
+    field SerialRegistrationType registration_type
+    field varvalue{string} extended
+end
+
+struct SmallObjectFilterSettings
+    field SmallObjectFilterType filter_type
+    field int32 filter_threshold
+    field varvalue{string} extended
+end
+
+struct TexturizationSettings
+    field TexturizeType texturize_type
+    field TexturizeResolution texturize_resolution
+    field bool enable_background_segmentation
+    field bool enable_ambient_lighting_compensation
+    field int32 atlas_unfolding_polygon_limit
+    field bool enable_texture_inpainting
+    field bool use_texture_normalization
+    field InputFilter input_filter_type
+    field varvalue{string} extended
+end
 
 object ArtecScanner
-    function Mesh capture(bool with_texture)    
+    function Mesh capture(bool with_texture)
+
+    function ScanningProcedureStatus{generator} run_scanning_procedure(ScanningProcedureSettings settings)
+
+    function void workset_free(uint32 workset_handle)
+    function uint32 workset_size(uint32 workset_handle)
+    function Mesh workset_get(uint32 workset_handle)
+
+    function ApplyAlgorithmsStatus{generator} workset_apply_algorithms(varvalue{list} algorithms)
 end
