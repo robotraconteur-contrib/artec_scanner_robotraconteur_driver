@@ -6,4 +6,6 @@
 namespace artec_scanner_robotraconteur_driver
 {
     com::robotraconteur::geometry::shapes::MeshPtr ConvertArtecMeshToRR(artec::sdk::base::IFrameMesh* mesh);
+
+    void ThrowArtecErrorCode(asdk::ErrorCode ec, const std::string& user_msg);
 }

@@ -118,4 +118,83 @@ namespace artec_scanner_robotraconteur_driver
 
         return ret;
     }
+
+    void ThrowArtecErrorCode(asdk::ErrorCode ec, const std::string& user_msg)
+    {
+        std::string msg;
+        std::string suberr;
+        switch( ec ){
+        case asdk::ErrorCode_OutOfMemory:
+            msg = "Not enough storage is available to process the operation";
+            suberr = "OutOfMemory";
+            break;
+        case asdk::ErrorCode_ArgumentInvalid:
+            msg = "Provided argument is invalid";
+            suberr = "ArgumentInvalid";
+            break;
+        case asdk::ErrorCode_OperationInvalid:
+            msg = "Requested operation is invalid";
+            suberr = "OperationInvalid";
+            break;
+        case asdk::ErrorCode_FormatUnsupported:
+            msg = "Data format is unsupported or invalid";
+            suberr = "FormatUnsupported";
+            break;
+        case asdk::ErrorCode_ScannerNotConnected:
+            msg = "Requested scanner is not connected";
+            suberr = "ScannerNotConnected";
+            break;
+        case asdk::ErrorCode_ScannerNotLicensed:
+            msg = "Requested scanner is not licensed";
+            suberr = "ScannerNotLicensed";
+            break;
+        case asdk::ErrorCode_ScannerLocked:
+            msg = "Requested scanner is already used by someone else";
+            suberr = "ScannerLocked";
+            break;
+        case asdk::ErrorCode_ScannerInitializationFailed:
+            msg = "Scanner initialization failed";
+            suberr = "ScannerInitializationFailed";
+            break;
+        case asdk::ErrorCode_FrameCorrupted:
+            msg = "Frame is corrupted";
+            suberr = "FrameCorrupted";
+            break;
+        case asdk::ErrorCode_FrameReconstructionFailed:
+            msg = "Frame reconstruction failed";
+            suberr = "FrameReconstructionFailed";
+            break;
+        case asdk::ErrorCode_FrameRegistrationFailed:
+            msg = "Frame registration failed";
+            suberr = "FrameRegistrationFailed";
+            break;
+        case asdk::ErrorCode_OperationUnsupported:
+            msg = "Requested operation is unsupported. Check versions";
+            suberr = "OperationUnsupported";
+            break;
+        case asdk::ErrorCode_OperationDenied:
+            msg = "Requested operation is denied. Check your license(s)";
+            suberr = "OperationDenied";
+            break;
+        case asdk::ErrorCode_OperationFailed:
+            msg = "Requested operation has failed";
+            suberr = "OperationFailed";
+            break;
+        case asdk::ErrorCode_OperationAborted:
+            msg = "Requested operation was canceled from client's side";
+            suberr = "OperationAborted";
+            break;
+        case asdk::ErrorCode_AllFramesAreFilteredOut:
+            msg = "Unable to start algorithm because input data turned out to be invalid. Please rescan the object.";
+            suberr = "AllFramesAreFilteredOut";
+            break;
+        default:
+            msg = "Unexplained error";
+            suberr = "Unexplained";
+            break;
+        }
+
+        std::string exp_msg = "Artec Error: " + msg + ": " + user_msg;
+        throw experimental::artec_scanner::ArtecScannerException(exp_msg, suberr);
+    }
 }

@@ -101,6 +101,8 @@ enum TexturizeResolution
     texturize_resolution_16384x16384
 end
 
+exception ArtecScannerException
+
 struct ScanningProcedureSettings
     field int32 max_frame_count
     field RegistrationAlgorithmType registration_type
