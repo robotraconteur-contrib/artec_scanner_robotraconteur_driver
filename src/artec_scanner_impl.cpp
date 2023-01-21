@@ -26,36 +26,25 @@ namespace artec_scanner_robotraconteur_driver
     void ArtecScannerImpl::Init(artec::sdk::capturing::IScanner* scanner)
     {
         this->scanner=scanner;
-         asdk::ErrorCode ec = asdk::ErrorCode_OK;
-         ec = scanner->createFrameProcessor(&processor);
-         if( ec != asdk::ErrorCode_OK )
-         {
-            throw RR::SystemResourceException("Could not create frame processor: " + boost::lexical_cast<std::string>(ec));
-         }
+        RR_CALL_ARTEC(scanner->createFrameProcessor(&processor), "error creating frame processor");         
 
     }
 
     RR_INTRUSIVE_PTR<com::robotraconteur::geometry::shapes::Mesh > ArtecScannerImpl::capture(RobotRaconteur::rr_bool with_texture)
     {
+        RR_ARTEC_LOG_INFO("Begin scanner capture");
         TRef<asdk::IFrame> frame;
         TRef<asdk::IFrameMesh> mesh;
         frame = nullptr;
         mesh = nullptr;
         asdk::ErrorCode ec = asdk::ErrorCode_OK;
-        ec = scanner->capture( &frame, with_texture.value != 0);
-        if( ec != asdk::ErrorCode_OK )
-        {
-            throw RR::OperationFailedException("Capture frame failed: " + boost::lexical_cast<std::string>(ec));
-        }
-
-        ec = processor->reconstructAndTexturizeMesh( &mesh, frame );
-        if( ec != asdk::ErrorCode_OK )
-        {
-            throw RR::OperationFailedException("Reconstruct and texturize mesh failed: " + boost::lexical_cast<std::string>(ec));
-        }
-
-
-        return ConvertArtecMeshToRR(mesh);
+        RR_CALL_ARTEC(scanner->capture( &frame, with_texture.value != 0), "Error capturing from scanner");
+        
+        RR_CALL_ARTEC(processor->reconstructAndTexturizeMesh( &mesh, frame ), "Error reconstructing mesh");
+        
+        com::robotraconteur::geometry::shapes::MeshPtr rr_mesh = ConvertArtecMeshToRR(mesh);
+        RR_ARTEC_LOG_INFO("Scanner capture complete");
+        return rr_mesh;
     }
 
     ArtecScannerImpl::~ArtecScannerImpl()
