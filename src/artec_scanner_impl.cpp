@@ -11,6 +11,7 @@
 #include <artec/sdk/base/TArrayRef.h>
 
 #include "artec_scanner_util.h"
+#include "artec_scanning_procedure.h"
 
 namespace asdk {
     using namespace artec::sdk::base;
@@ -30,7 +31,7 @@ namespace artec_scanner_robotraconteur_driver
 
     }
 
-    RR_INTRUSIVE_PTR<com::robotraconteur::geometry::shapes::Mesh > ArtecScannerImpl::capture(RobotRaconteur::rr_bool with_texture)
+    com::robotraconteur::geometry::shapes::MeshPtr ArtecScannerImpl::capture(RobotRaconteur::rr_bool with_texture)
     {
         RR_ARTEC_LOG_INFO("Begin scanner capture");
         TRef<asdk::IFrame> frame;
@@ -47,12 +48,30 @@ namespace artec_scanner_robotraconteur_driver
         return rr_mesh;
     }
 
+    RR::GeneratorPtr<experimental::artec_scanner::ScanningProcedureStatusPtr,void>
+                ArtecScannerImpl::run_scanning_procedure(
+                const experimental::artec_scanner::ScanningProcedureSettingsPtr& settings)
+    {
+        auto proc = RR_MAKE_SHARED<ScanningProcedure>(shared_from_this());
+        proc->Init(settings);
+        RR_ARTEC_LOG_INFO("ScanningProcedure generator returned to client. Call Next() to begin.");
+        return proc;
+    }
+
     ArtecScannerImpl::~ArtecScannerImpl()
     {
         if (processor)
         {
             processor->release();
         }
+    }
+
+    uint32_t ArtecScannerImpl::add_workset(RRAlgorithmWorksetPtr workset)
+    { 
+        boost::mutex::scoped_lock lock(this_lock);
+        auto h = ++handle_cnt;
+        worksets.insert(std::make_pair(h,workset));
+        return h;
     }
 
 }

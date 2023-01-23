@@ -21,6 +21,7 @@ add_executable(artec_scanner_robotraconteur_driver
     src/artec_scanner_robotraconteur_driver.cpp
 	src/artec_scanner_impl.cpp
 	src/artec_scanner_util.cpp
+	src/artec_scanning_procedure.cpp
     ${RR_THUNK_HDRS}
 	${RR_THUNK_SRCS}
 )

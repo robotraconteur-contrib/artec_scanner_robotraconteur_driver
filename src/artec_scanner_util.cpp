@@ -211,11 +211,31 @@ namespace artec_scanner_robotraconteur_driver
         throw experimental::artec_scanner::ArtecScannerException(exp_msg, suberr);
     }
 
+    RR_SHARED_PTR<RR::RobotRaconteurException> ArtecErrorToExceptionPtr(artec::sdk::base::ErrorCode ec, const std::string& user_msg)
+    {
+        if (ec == asdk::ErrorCode_OK)
+        {
+            return nullptr;
+        }
+        std::string msg;
+        std::string suberr;
+        ArtecErrorCodeMessage(ec, msg, suberr);
+        std::string exp_msg = "Artec Error: " + msg + ": " + user_msg;
+        return RR_MAKE_SHARED<experimental::artec_scanner::ArtecScannerException>(exp_msg, suberr);
+    }
+
     std::string ArtecErrorCodeLogMessage(asdk::ErrorCode ec)
     {
         std::string msg;
         std::string suberr;
         ArtecErrorCodeMessage(ec, msg, suberr);
         return "Artec Error ("+ boost::lexical_cast<std::string>(ec) + ") " + suberr + ": " + msg;
+    }
+
+    RRAlgorithmWorkset::RRAlgorithmWorkset()
+    {
+        RR_CALL_ARTEC( asdk::createModel( &input_container ), "Error creating input container");
+        RR_CALL_ARTEC( asdk::createModel( &output_container ), "Error creating output container" );
+        RR_CALL_ARTEC( asdk::createCancellationTokenSource( &ct_source ), "Error creating cancellation token" );
     }
 }

@@ -1,7 +1,13 @@
 #include "experimental__artec_scanner.h"
 #include "experimental__artec_scanner_stubskel.h"
 #include <artec/sdk/base/IFrameMesh.h>
+#include <artec/sdk/base/TRef.h>
+#include <artec/sdk/base/AlgorithmWorkset.h>
+#include <artec/sdk/base/IModel.h>
+#include <artec/sdk/base/ICancellationTokenSource.h>
 #include <com__robotraconteur__geometry__shapes.h>
+
+#pragma once
 
 #define RR_CALL_ARTEC(cmd, user_err_msg) \
     { \
@@ -27,7 +33,22 @@ namespace artec_scanner_robotraconteur_driver
 
     void ThrowArtecErrorCode(artec::sdk::base::ErrorCode ec, const std::string& user_msg);
 
+    RobotRaconteur::RobotRaconteurExceptionPtr ArtecErrorToExceptionPtr(artec::sdk::base::ErrorCode ec, const std::string& user_msg);
+
     void ArtecErrorCodeMessage(artec::sdk::base::ErrorCode ec, std::string& msg, std::string& suberr);
     
     std::string ArtecErrorCodeLogMessage(artec::sdk::base::ErrorCode ec);
+
+    class RRAlgorithmWorkset
+    {
+    public:
+        artec::sdk::base::TRef<artec::sdk::base::IModel> input_container;
+        artec::sdk::base::TRef<artec::sdk::base::IModel> output_container;
+        artec::sdk::base::TRef<artec::sdk::base::ICancellationTokenSource> ct_source;
+        artec::sdk::base::AlgorithmWorkset workset;
+
+        RRAlgorithmWorkset();
+    };
+
+    using RRAlgorithmWorksetPtr = boost::shared_ptr<RRAlgorithmWorkset>;
 }

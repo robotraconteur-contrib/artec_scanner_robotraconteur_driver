@@ -175,7 +175,7 @@ struct OutliersRemovalAlgorithm
     field varvalue{string} extended
 end
 
-struct PoissonFusionSettings
+struct PoissonFusionAlgorithm
     field PoissonFusionType fusion_type
     field FillHolesType fill_type
     field single resolution
@@ -193,13 +193,13 @@ struct SerialRegistrationAlgorithm
     field varvalue{string} extended
 end
 
-struct SmallObjectFilterSettings
+struct SmallObjectFilterAlgorithm
     field SmallObjectFilterType filter_type
     field int32 filter_threshold
     field varvalue{string} extended
 end
 
-struct TexturizationSettings
+struct TexturizationAlgorithm
     field TexturizeType texturize_type
     field TexturizeResolution texturize_resolution
     field bool enable_background_segmentation
