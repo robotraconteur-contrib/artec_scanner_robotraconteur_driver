@@ -14,6 +14,7 @@
 #include <artec/sdk/project/ProjectSettings.h>
 #include <artec/sdk/project/ProjectLoaderSettings.h>
 #include <artec/sdk/project/ProjectSaverSettings.h>
+#include <artec/sdk/base/ICompositeContainer.h>
 
 #include "artec_scanner_util.h"
 #include "artec_scanning_procedure.h"
@@ -45,7 +46,12 @@ namespace artec_scanner_robotraconteur_driver
     void ArtecScannerImpl::Init(artec::sdk::capturing::IScanner* scanner)
     {
         this->scanner=scanner;
+        if (scanner)
+        {
+            RR_CALL_ARTEC(scanner->createFrameProcessor(&processor), "error creating frame processor");         
         RR_CALL_ARTEC(scanner->createFrameProcessor(&processor), "error creating frame processor");         
+            RR_CALL_ARTEC(scanner->createFrameProcessor(&processor), "error creating frame processor");         
+        }
 
     }
 
@@ -68,6 +74,11 @@ namespace artec_scanner_robotraconteur_driver
 
     com::robotraconteur::geometry::shapes::MeshPtr ArtecScannerImpl::capture(RR::rr_bool with_texture)
     {
+        if (this->scanner == nullptr)
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to use scanner when no scanner is available");
+            throw RR::InvalidOperationException("No scanner available");
+        }
         RR_ARTEC_LOG_INFO("Begin scanner capture");
         TRef<asdk::IFrame> frame;
         TRef<asdk::IFrameMesh> mesh;
@@ -92,6 +103,11 @@ namespace artec_scanner_robotraconteur_driver
                 ArtecScannerImpl::run_scanning_procedure(
                 const rr_artec::ScanningProcedureSettingsPtr& settings)
     {
+        if (this->scanner == nullptr)
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to use scanner when no scanner is available");
+            throw RR::InvalidOperationException("No scanner available");
+        }
         auto proc = RR_MAKE_SHARED<ScanningProcedure>(shared_from_this());
         proc->Init(settings);
         RR_ARTEC_LOG_INFO("ScanningProcedure generator returned to client. Call Next() to begin.");

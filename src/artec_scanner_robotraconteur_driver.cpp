@@ -31,7 +31,8 @@ int main(int argc, char* argv[])
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help", "produce help message")
-        ("project-save-path", po::value<std::string>(), "set project save path");
+        ("project-save-path", po::value<std::string>(), "set project save path")
+        ("no-scanner","Do not search for scanner. Only used to process existing scan data");
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -42,34 +43,37 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    asdk::setOutputLevel( asdk::VerboseLevel_Trace );
-    asdk::ErrorCode ec = asdk::ErrorCode_OK;
-    TRef<asdk::IArrayScannerId> scannersList;
-    std::cerr << "Enumerating scanners... " << std::endl;
-    ec = asdk::enumerateScanners( &scannersList );
-    if( ec != asdk::ErrorCode_OK )
-    {
-        std::cerr << "Enumerating scanners failed" << std::endl;
-        return 1;
-    }
-    int scanner_count = scannersList->getSize();
-    if( scanner_count == 0 )
-    {
-        std::cerr << "No scanners found" << std::endl;
-        return 3;
-    }
-    const asdk::ScannerId* idArray = scannersList->getPointer();
-    const asdk::ScannerId& defaultScanner = idArray[0]; // just take the first available scanner
-    std::wcerr 
-        << L"Connecting to " << asdk::getScannerTypeName( defaultScanner.type ) 
-        << L" scanner " << defaultScanner.serial << L"... "
-    ;
     TRef<asdk::IScanner> scanner;
-    ec = asdk::createScanner( &scanner, &defaultScanner );
-    if( ec != asdk::ErrorCode_OK )
+    if(vm.count("no-scanner") == 0)
     {
-        std::cerr << "Create scanner failed" << std::endl;
-        return 2;
+        asdk::setOutputLevel( asdk::VerboseLevel_Trace );
+        asdk::ErrorCode ec = asdk::ErrorCode_OK;
+        TRef<asdk::IArrayScannerId> scannersList;
+        std::cerr << "Enumerating scanners... " << std::endl;
+        ec = asdk::enumerateScanners( &scannersList );
+        if( ec != asdk::ErrorCode_OK )
+        {
+            std::cerr << "Enumerating scanners failed" << std::endl;
+            return 1;
+        }
+        int scanner_count = scannersList->getSize();
+        if( scanner_count == 0 )
+        {
+            std::cerr << "No scanners found" << std::endl;
+            return 3;
+        }
+        const asdk::ScannerId* idArray = scannersList->getPointer();
+        const asdk::ScannerId& defaultScanner = idArray[0]; // just take the first available scanner
+        std::wcerr 
+            << L"Connecting to " << asdk::getScannerTypeName( defaultScanner.type ) 
+            << L" scanner " << defaultScanner.serial << L"... "
+        ;
+        ec = asdk::createScanner( &scanner, &defaultScanner );
+        if( ec != asdk::ErrorCode_OK )
+        {
+            std::cerr << "Create scanner failed" << std::endl;
+            return 2;
+        }
     }
 
     auto scanner_impl = RR_MAKE_SHARED<ArtecScannerImpl>();
