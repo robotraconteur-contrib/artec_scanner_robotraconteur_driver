@@ -171,7 +171,7 @@ namespace artec_scanner_robotraconteur_driver
         }
 
         
-        auto file_path = ((*save_path) / (project_name + ".a3d"));
+        auto file_path = ((*save_path) / project_name / (project_name + ".a3d"));
         RR_ARTEC_LOG_INFO("Begin load model from file " << file_path);
         asdk::TRef<asdk::IProject> project;
 
@@ -213,10 +213,19 @@ namespace artec_scanner_robotraconteur_driver
             throw RR::InvalidArgumentException("Invalid project name");
         }
 
+        auto project_dir = *save_path / project_name;
+        if (boost::filesystem::exists(project_dir))
+        {
+            RR_ARTEC_LOG_ERROR("Project directory already exists: " << project_dir);
+            throw RR::InvalidArgumentException("Project name already exstis");
+        }
+
         RRArtecModelPtr model = RR_DYNAMIC_POINTER_CAST<RRArtecModel>(get_models(model_handle));
 
         asdk::ProjectSaverSettings save_settings;
-        auto file_path = ((*save_path) / (project_name + ".a3d"));
+        
+        boost::filesystem::create_directory(project_dir);
+        auto file_path = ((project_dir) / (project_name + ".a3d"));
         save_settings.path = file_path.c_str();
         RR_ARTEC_LOG_INFO("Begin save model: " << model_handle << " to file " << file_path);
         RR_CALL_ARTEC(asdk::generateUuid(&save_settings.projectId), "Error generating project UUID");
