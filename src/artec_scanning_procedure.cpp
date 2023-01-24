@@ -172,9 +172,10 @@ namespace artec_scanner_robotraconteur_driver
 
     void ScanningProcedure::scan_job_complete(artec::sdk::base::ErrorCode result)
     {
-        RR_ARTEC_LOG_INFO("Scanning procedure artec job complete");
+        RR_ARTEC_LOG_INFO("Scanning procedure artec job complete: " << (int32_t)result);
 
         boost::mutex::scoped_lock lock(this_lock);
+        artec_job_status = result;
         auto h = next_handler;
         next_handler.clear();
         if (h)
