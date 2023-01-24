@@ -231,11 +231,4 @@ namespace artec_scanner_robotraconteur_driver
         ArtecErrorCodeMessage(ec, msg, suberr);
         return "Artec Error ("+ boost::lexical_cast<std::string>(ec) + ") " + suberr + ": " + msg;
     }
-
-    RRAlgorithmWorkset::RRAlgorithmWorkset()
-    {
-        RR_CALL_ARTEC( asdk::createModel( &input_container ), "Error creating input container");
-        RR_CALL_ARTEC( asdk::createModel( &output_container ), "Error creating output container" );
-        RR_CALL_ARTEC( asdk::createCancellationTokenSource( &ct_source ), "Error creating cancellation token" );
-    }
 }

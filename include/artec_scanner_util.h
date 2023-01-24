@@ -39,16 +39,4 @@ namespace artec_scanner_robotraconteur_driver
     
     std::string ArtecErrorCodeLogMessage(artec::sdk::base::ErrorCode ec);
 
-    class RRAlgorithmWorkset
-    {
-    public:
-        artec::sdk::base::TRef<artec::sdk::base::IModel> input_container;
-        artec::sdk::base::TRef<artec::sdk::base::IModel> output_container;
-        artec::sdk::base::TRef<artec::sdk::base::ICancellationTokenSource> ct_source;
-        artec::sdk::base::AlgorithmWorkset workset;
-
-        RRAlgorithmWorkset();
-    };
-
-    using RRAlgorithmWorksetPtr = boost::shared_ptr<RRAlgorithmWorkset>;
 }

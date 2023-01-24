@@ -117,12 +117,13 @@ end
 
 struct ScanningProcedureStatus
    field ActionStatusCode action_status
-   field uint32 workset_handle 
+   field int32 workset_handle 
 end
 
-struct ApplyAlgorithmsStatus
+struct RunAlgorithmsStatus
     field ActionStatusCode action_status
     field uint32 current_algorithm
+    field int32 output_model_handle
 end
 
 struct AutoAlignAlgorithm
@@ -213,12 +214,25 @@ end
 
 object ArtecScanner
     function Mesh capture(bool with_texture)
+    function uint8[] capture_obj(bool with_texture)
 
     function ScanningProcedureStatus{generator} run_scanning_procedure(ScanningProcedureSettings settings)
 
-    function void workset_free(uint32 workset_handle)
-    function uint32 workset_size(uint32 workset_handle)
-    function Mesh workset_get(uint32 workset_handle)
+    function void model_free(int32 model_handle)
+    function int32 model_create()    
+    objref Model{int32} models
 
-    function ApplyAlgorithmsStatus{generator} workset_apply_algorithms(varvalue{list} algorithms)
+    function int32 load_model(string project_name)
+    function void save_model(string project_name, int32 model_handle)
+
+    function RunAlgorithmsStatus{generator} run_algorithms(varvalue{list} algorithms, int32 input_model_handle)
+end
+
+object Model
+    property uint32 scan_count [readonly]
+    function Mesh getf_scan(uint32 ind)
+    property uint32 composite_mesh_count [readonly]
+    function Mesh getf_composite_mesh_simple(uint32 ind)
+    function uint8[] getf_scan_obj(uint32 ind)
+    function uint8[] getf_composite_mesh_obj()
 end

@@ -20,10 +20,20 @@ namespace asdk {
 using asdk::TRef;
 using asdk::TArrayRef;
 
-namespace RR = RobotRaconteur;
+namespace rr_geom = com::robotraconteur::geometry;
+namespace rr_shapes = com::robotraconteur::geometry::shapes;
+namespace rr_image = com::robotraconteur::image;
+namespace RR=RobotRaconteur;
+namespace rr_artec = experimental::artec_scanner;
 
 namespace artec_scanner_robotraconteur_driver
 {
+
+    RRArtecModel::RRArtecModel()
+    {
+        RR_CALL_ARTEC( asdk::createModel( &model ), "Error creating artec model");
+    }
+
     void ArtecScannerImpl::Init(artec::sdk::capturing::IScanner* scanner)
     {
         this->scanner=scanner;
@@ -31,7 +41,7 @@ namespace artec_scanner_robotraconteur_driver
 
     }
 
-    com::robotraconteur::geometry::shapes::MeshPtr ArtecScannerImpl::capture(RobotRaconteur::rr_bool with_texture)
+    com::robotraconteur::geometry::shapes::MeshPtr ArtecScannerImpl::capture(RR::rr_bool with_texture)
     {
         RR_ARTEC_LOG_INFO("Begin scanner capture");
         TRef<asdk::IFrame> frame;
@@ -48,9 +58,14 @@ namespace artec_scanner_robotraconteur_driver
         return rr_mesh;
     }
 
-    RR::GeneratorPtr<experimental::artec_scanner::ScanningProcedureStatusPtr,void>
+    RR::RRArrayPtr<uint8_t> ArtecScannerImpl::capture_obj(RR::rr_bool with_texture)
+    {
+        throw RR::NotImplementedException("");
+    }
+
+    RR::GeneratorPtr<rr_artec::ScanningProcedureStatusPtr,void>
                 ArtecScannerImpl::run_scanning_procedure(
-                const experimental::artec_scanner::ScanningProcedureSettingsPtr& settings)
+                const rr_artec::ScanningProcedureSettingsPtr& settings)
     {
         auto proc = RR_MAKE_SHARED<ScanningProcedure>(shared_from_this());
         proc->Init(settings);
@@ -66,12 +81,62 @@ namespace artec_scanner_robotraconteur_driver
         }
     }
 
-    uint32_t ArtecScannerImpl::add_workset(RRAlgorithmWorksetPtr workset)
+    int32_t ArtecScannerImpl::add_model(RRArtecModelPtr model)
     { 
         boost::mutex::scoped_lock lock(this_lock);
         auto h = ++handle_cnt;
-        worksets.insert(std::make_pair(h,workset));
+        models.insert(std::make_pair(h,model));
+        RR_ARTEC_LOG_INFO("Created model handle: " << h);
         return h;
+    }
+
+    rr_artec::ModelPtr ArtecScannerImpl::get_models(int32_t model_handle)
+    {
+        boost::mutex::scoped_lock lock(this_lock);
+
+        auto e = models.find(model_handle);
+        if (e == models.end())
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to get invalid model: " << model_handle);
+            throw RR::InvalidArgumentException("Invalid model handle");
+        }
+        return e->second;
+    }
+
+    /*RRAlgorithmWorksetPtr ArtecScannerImpl::get_workset_lock(uint32_t workset_handle, boost::mutex::scoped_try_lock& lock)
+    {
+        auto workset = get_workset(workset_handle);
+        boost::mutex::scoped_try_lock workset_lock(workset->lock);
+        if (!lock.owns_lock() || workset->busy)
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to access workset while in use: " << workset_handle);
+            throw RR::InvalidOperationException("Workset in use");
+        }
+
+        workset_lock.swap(lock);
+        return workset;
+    }*/
+
+    void ArtecScannerImpl::model_free(int32_t model_handle)
+    {
+        boost::mutex::scoped_lock lock(this_lock);
+
+        auto e = models.find(model_handle);
+        if (e == models.end())
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to free invalid model: " << model_handle);
+            throw RR::InvalidArgumentException("Invalid workset handle");
+        }
+
+        models.erase(e);
+    }
+
+    
+
+    RR::GeneratorPtr<rr_artec::RunAlgorithmsStatusPtr,void >
+        ArtecScannerImpl::run_algorithms(const RR::RRListPtr<RR::RRValue>& algorithms, int32_t input_model_handle)
+    {
+        throw RR::NotImplementedException("Not implemented");
     }
 
 }

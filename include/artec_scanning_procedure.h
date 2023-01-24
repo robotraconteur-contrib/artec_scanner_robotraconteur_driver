@@ -16,6 +16,7 @@ namespace artec_scanner_robotraconteur_driver
     class ScanningProcedure;
     class ScanningProcedureObserver;
     class ScanningProcedureJobObserver;
+    class RRArtecModel;
     class ScanningProcedure : public RobotRaconteur::Generator<experimental::artec_scanner::ScanningProcedureStatusPtr,void>,
         public RR_ENABLE_SHARED_FROM_THIS<ScanningProcedure>
     {
@@ -32,7 +33,10 @@ namespace artec_scanner_robotraconteur_driver
             artec::sdk::base::ErrorCode artec_job_status = artec::sdk::base::ErrorCode_UnknownExceptionType;
             boost::function<void(const experimental::artec_scanner::ScanningProcedureStatusPtr&,
                 const RobotRaconteur::RobotRaconteurExceptionPtr&)> next_handler;
-            RRAlgorithmWorksetPtr workset;
+            boost::shared_ptr<RRArtecModel> model;
+            artec::sdk::base::AlgorithmWorkset workset;
+            artec::sdk::base::TRef<artec::sdk::base::IModel> input_container;
+            artec::sdk::base::TRef<artec::sdk::base::ICancellationTokenSource> ct_source;
             RobotRaconteur::TimerPtr next_timer;
         public:
 

@@ -65,7 +65,15 @@ namespace artec_scanner_robotraconteur_driver
         RR_CALL_ARTEC(asdk::createScanningProcedure(&this->scanning_procedure, GetParent()->scanner, &desc), 
             "Error creating scanning procedure");
 
-        workset = boost::make_shared<RRAlgorithmWorkset>();       
+        model = boost::make_shared<RRArtecModel>();        
+        RR_CALL_ARTEC(asdk::createModel(&input_container), "Error creating input model");
+        RR_CALL_ARTEC(asdk::createCancellationTokenSource(&ct_source), "Error creating cancellation source");
+
+        workset.in = input_container;
+        workset.out = model->model;
+        workset.cancellation = ct_source->getToken();
+        workset.progress = nullptr;
+        workset.threadsCount = 0;        
     }
 
     void ScanningProcedure::AsyncNext(boost::function<void(const experimental::artec_scanner::ScanningProcedureStatusPtr&,
@@ -84,7 +92,7 @@ namespace artec_scanner_robotraconteur_driver
         if (!started)
         {
             auto job_observer = new ScanningProcedureJobObserver(shared_from_this());
-            RR_CALL_ARTEC(asdk::launchJob(scanning_procedure, &workset->workset, job_observer), 
+            RR_CALL_ARTEC(asdk::launchJob(scanning_procedure, &workset, job_observer), 
                 "Error launching scanning procedure");
             started = true;
             auto ret = rr_artec::ScanningProcedureStatusPtr(new rr_artec::ScanningProcedureStatus());
@@ -197,7 +205,7 @@ namespace artec_scanner_robotraconteur_driver
             return;
         }
 
-        auto handle = GetParent()->add_workset(workset);
+        auto handle = GetParent()->add_model(model);
         auto ret = rr_artec::ScanningProcedureStatusPtr(new rr_artec::ScanningProcedureStatus());
         ret->action_status = rr_action::ActionStatusCode::complete;
         ret->workset_handle = handle;
