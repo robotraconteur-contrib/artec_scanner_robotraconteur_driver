@@ -183,7 +183,8 @@ namespace artec_scanner_robotraconteur_driver
         for (int i=0; i<num_entries; i++)
         {
             asdk::EntryInfo entry;
-            RR_CALL_ARTEC(project->getEntry(i, &entry), "Could not get entry info");            
+            RR_CALL_ARTEC(project->getEntry(i, &entry), "Could not get entry info");
+            uuids->setElement(i, entry.uuid);       
         }
 
         asdk::ProjectLoaderSettings loader_settings;
