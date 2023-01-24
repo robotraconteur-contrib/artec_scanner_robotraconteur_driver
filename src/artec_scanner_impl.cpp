@@ -206,7 +206,7 @@ namespace artec_scanner_robotraconteur_driver
             RR_ARTEC_LOG_ERROR("load_model called but project save path not specified")
             throw RR::InvalidOperationException("Project save path not specified");
         }
-        boost::regex r_project_name("^[\\w\\-]$");
+        boost::regex r_project_name("^[\\w\\-]+$");
         if(!boost::regex_match(project_name,r_project_name))
         {
             RR_ARTEC_LOG_ERROR("Invalid project name specified: " << project_name);
