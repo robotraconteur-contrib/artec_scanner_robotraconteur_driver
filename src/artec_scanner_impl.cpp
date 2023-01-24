@@ -9,13 +9,21 @@
 #include <artec/sdk/base/io/ObjIO.h>
 #include <artec/sdk/base/IFrameMesh.h>
 #include <artec/sdk/base/TArrayRef.h>
+#include <artec/sdk/project/IProject.h>
+#include <artec/sdk/project/EntryInfo.h>
+#include <artec/sdk/project/ProjectSettings.h>
+#include <artec/sdk/project/ProjectLoaderSettings.h>
+#include <artec/sdk/project/ProjectSaverSettings.h>
 
 #include "artec_scanner_util.h"
 #include "artec_scanning_procedure.h"
 
+#include <boost/filesystem.hpp>
+
 namespace asdk {
     using namespace artec::sdk::base;
     using namespace artec::sdk::capturing;
+    using namespace artec::sdk::project;
 };
 using asdk::TRef;
 using asdk::TArrayRef;
@@ -39,6 +47,23 @@ namespace artec_scanner_robotraconteur_driver
         this->scanner=scanner;
         RR_CALL_ARTEC(scanner->createFrameProcessor(&processor), "error creating frame processor");         
 
+    }
+
+    void ArtecScannerImpl::set_save_path(boost::optional<boost::filesystem::path> save_path)
+    {
+        if (!save_path)
+        {
+            this->save_path = save_path;
+            RR_ARTEC_LOG_INFO("Project save path cleared");
+            return;
+        }
+        if (!boost::filesystem::is_directory(*save_path))
+        {
+            RR_ARTEC_LOG_ERROR("Project save path is not a directory: " << *save_path);
+            throw RR::InvalidArgumentException("Project save path is not a directory");
+        }
+
+        this->save_path = save_path;
     }
 
     com::robotraconteur::geometry::shapes::MeshPtr ArtecScannerImpl::capture(RR::rr_bool with_texture)
@@ -131,7 +156,80 @@ namespace artec_scanner_robotraconteur_driver
         models.erase(e);
     }
 
-    
+    int32_t ArtecScannerImpl::load_model(const std::string& project_name)
+    {
+        if (!save_path)
+        {
+            RR_ARTEC_LOG_ERROR("load_model called but project save path not specified")
+            throw RR::InvalidOperationException("Project save path not specified");
+        }
+        boost::regex r_project_name("^[\\w\\-]$");
+        if(!boost::regex_match(project_name,r_project_name))
+        {
+            RR_ARTEC_LOG_ERROR("Invalid project name specified: " << project_name);
+            throw RR::InvalidArgumentException("Invalid project name");
+        }
+
+        
+        auto file_path = ((*save_path) / (project_name + ".a3d"));
+        RR_ARTEC_LOG_INFO("Begin load model from file " << file_path);
+        asdk::TRef<asdk::IProject> project;
+
+        RR_CALL_ARTEC(asdk::openProject(&project, file_path.c_str()), "Could not open project");
+
+        int num_entries = project->getEntryCount();
+        asdk::TRef<asdk::IArrayUuid> uuids;
+        RR_CALL_ARTEC(asdk::createArrayUuid(&uuids, num_entries), "Could not allocate project load uuids");
+        for (int i=0; i<num_entries; i++)
+        {
+            asdk::EntryInfo entry;
+            RR_CALL_ARTEC(project->getEntry(i, &entry), "Could not get entry info");            
+        }
+
+        asdk::ProjectLoaderSettings loader_settings;
+        loader_settings.entryList = uuids;
+        asdk::TRef<asdk::IJob> loader;
+        RR_CALL_ARTEC(project->createLoader(&loader, &loader_settings), "Could not create loader");
+        auto model = RR_MAKE_SHARED<RRArtecModel>();
+        asdk::AlgorithmWorkset load_workset = {nullptr, model->model, nullptr, 0};
+        RR_CALL_ARTEC(asdk::executeJob(loader, &load_workset), "Error loading model");
+
+        int32_t model_handle = add_model(model);
+        RR_ARTEC_LOG_INFO("Loaded model: " << model_handle << " from file " << file_path);
+        return model_handle;
+    }
+
+    void ArtecScannerImpl::save_model(const std::string& project_name, int32_t model_handle)
+    {
+        if (!save_path)
+        {
+            RR_ARTEC_LOG_ERROR("load_model called but project save path not specified")
+            throw RR::InvalidOperationException("Project save path not specified");
+        }
+        boost::regex r_project_name("^[\\w\\-]$");
+        if(!boost::regex_match(project_name,r_project_name))
+        {
+            RR_ARTEC_LOG_ERROR("Invalid project name specified: " << project_name);
+            throw RR::InvalidArgumentException("Invalid project name");
+        }
+
+        RRArtecModelPtr model = RR_DYNAMIC_POINTER_CAST<RRArtecModel>(get_models(model_handle));
+
+        asdk::ProjectSaverSettings save_settings;
+        auto file_path = ((*save_path) / (project_name + ".a3d"));
+        save_settings.path = file_path.c_str();
+        RR_ARTEC_LOG_INFO("Begin save model: " << model_handle << " to file " << file_path);
+        RR_CALL_ARTEC(asdk::generateUuid(&save_settings.projectId), "Error generating project UUID");
+        asdk::ProjectSettings project_settings;
+        project_settings.path = file_path.c_str();
+        asdk::TRef<asdk::IProject> project;
+        asdk::createNewProject(&project, &project_settings);
+        asdk::TRef<asdk::IJob> saver;
+        RR_CALL_ARTEC(project->createSaver(&saver, &save_settings), "Error creating project saver");
+        asdk::AlgorithmWorkset save_workset = {model->model, nullptr, nullptr, 0};
+        RR_CALL_ARTEC(asdk::executeJob(saver, &save_workset), "Error saving model");
+        RR_ARTEC_LOG_INFO("Saved model: " << model_handle << " to file " << file_path);
+    }
 
     RR::GeneratorPtr<rr_artec::RunAlgorithmsStatusPtr,void >
         ArtecScannerImpl::run_algorithms(const RR::RRListPtr<RR::RRValue>& algorithms, int32_t input_model_handle)

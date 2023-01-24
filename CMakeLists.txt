@@ -27,6 +27,7 @@ add_executable(artec_scanner_robotraconteur_driver
 )
 
 target_include_directories(artec_scanner_robotraconteur_driver PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(artec_scanner_robotraconteur_driver RobotRaconteurCompanion RobotRaconteurCore ArtecSDK::Base ArtecSDK::Algorithms ArtecSDK::Capturing ArtecSDK::Scanning)
+target_link_libraries(artec_scanner_robotraconteur_driver RobotRaconteurCompanion RobotRaconteurCore 
+ArtecSDK::Base ArtecSDK::Algorithms ArtecSDK::Capturing ArtecSDK::Scanning ArtecSDK::Project)
 
 install(TARGETS artec_scanner_robotraconteur_driver)

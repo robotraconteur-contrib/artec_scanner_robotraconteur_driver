@@ -33,12 +33,15 @@ namespace artec_scanner_robotraconteur_driver
             std::map<int32_t,RRArtecModelPtr> models;
 
             boost::mutex this_lock;
-            
+
+            boost::optional<boost::filesystem::path> save_path;            
 
         public:
             friend class ScanningProcedure;
 
             void Init(artec::sdk::capturing::IScanner* scanner);
+
+            void set_save_path(boost::optional<boost::filesystem::path> save_path);
 
             RR_INTRUSIVE_PTR<com::robotraconteur::geometry::shapes::Mesh > capture(RobotRaconteur::rr_bool with_texture) override;
 
@@ -50,6 +53,10 @@ namespace artec_scanner_robotraconteur_driver
 
             void model_free(int32_t model_handle) override;
             experimental::artec_scanner::ModelPtr get_models(int32_t model_handle) override;
+
+            int32_t load_model(const std::string& project_name) override;
+
+            void save_model(const std::string& project_name, int32_t model_handle) override;
 
             RobotRaconteur::GeneratorPtr<experimental::artec_scanner::RunAlgorithmsStatusPtr,void >
                 run_algorithms(const RobotRaconteur::RRListPtr<RobotRaconteur::RRValue>& algorithms, int32_t input_model_handle) override;
