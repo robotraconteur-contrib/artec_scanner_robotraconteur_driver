@@ -7,36 +7,33 @@ using com.robotraconteur.geometry.shapes.Mesh
 using com.robotraconteur.action.ActionStatusCode
 
 enum RegistrationAlgorithmType
-    ICP = 0x0,
-    Hybrid = 0x1,
-    Texture = 0x2, 
-    ForceDword = 0x7fffffff
+    icp = 0x0,
+    hybrid = 0x1,
+    texture = 0x2, 
 end
 
 enum ScanningState
-    Preview = 0,
-    Record,
-    ContinueRecord,
-    Stop, 
-    ForceDword = 0x7fffffff
+    preview = 0,
+    record,
+    continue_record,
+    stop
 end
 
 enum CaptureTextureMethod
-    NoTextures = 0,
-    EveryNFrame,
-    OnTextureKeyFrame,
-    Always,
-    ForceDword = 0x7fffffff
+    no_textures = 0,
+    every_n_frame,
+    on_texture_key_frame,
+    always
 end
 
 enum ScanningPipeline
-    CaptureOnly          = 0x0,
-    ConvertTextures      = 0x1,
-    CalculateNormals     = 0x2,
-    MapTexture           = 0x4,
-    RegisterFrame        = 0x8,
-    FindGeometryKeyFrame = 0x10,
-    FastCapture          = 0x20
+    capture_only            = 0x0,
+    convert_textures        = 0x1,
+    calculate_normals       = 0x2,
+    map_texture             = 0x4,
+    register_frame          = 0x8,
+    find_geometry_key_frame = 0x10,
+    fast_capture            = 0x20
 end
 
 enum GlobalRegistrationType
@@ -117,7 +114,7 @@ end
 
 struct ScanningProcedureStatus
    field ActionStatusCode action_status
-   field int32 workset_handle 
+   field int32 model_handle 
 end
 
 struct RunAlgorithmsStatus

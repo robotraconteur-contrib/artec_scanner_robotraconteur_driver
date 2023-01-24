@@ -97,7 +97,7 @@ namespace artec_scanner_robotraconteur_driver
             started = true;
             auto ret = rr_artec::ScanningProcedureStatusPtr(new rr_artec::ScanningProcedureStatus());
             ret->action_status = rr_action::ActionStatusCode::running;
-            ret->workset_handle = 0;
+            ret->model_handle = 0;
             RR_ARTEC_LOG_INFO("Started scanning procedure")
             lock.unlock();
             handler(ret, nullptr);
@@ -209,7 +209,7 @@ namespace artec_scanner_robotraconteur_driver
         auto handle = GetParent()->add_model(model);
         auto ret = rr_artec::ScanningProcedureStatusPtr(new rr_artec::ScanningProcedureStatus());
         ret->action_status = rr_action::ActionStatusCode::complete;
-        ret->workset_handle = handle;
+        ret->model_handle = handle;
         handler(ret,nullptr);
     }
 
@@ -222,7 +222,7 @@ namespace artec_scanner_robotraconteur_driver
         {
             auto ret = rr_artec::ScanningProcedureStatusPtr(new rr_artec::ScanningProcedureStatus());
             ret->action_status = rr_action::ActionStatusCode::running;
-            ret->workset_handle = 0;
+            ret->model_handle = 0;
             h(ret, nullptr);
             return;
         }
