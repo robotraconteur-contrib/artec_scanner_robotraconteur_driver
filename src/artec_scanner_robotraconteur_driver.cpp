@@ -13,6 +13,7 @@
 #include <artec/sdk/base/IFrameMesh.h>
 #include <artec/sdk/base/TArrayRef.h>
 #include <boost/program_options.hpp>
+#include <artec/sdk/algorithms/Algorithms.h>
 
 namespace asdk {
     using namespace artec::sdk::base;
@@ -86,6 +87,10 @@ int main(int argc, char* argv[])
     
     RR::ServerNodeSetup node_setup(ROBOTRACONTEUR_SERVICE_TYPES, "experimental.artec_scanner", 64238);
     RR::RobotRaconteurNode::s()->RegisterService("scanner", "experimental.artec_scanner", scanner_impl);
+    if (!artec::sdk::algorithms::checkAlgorithmsPermission())
+    {
+        RR_ARTEC_LOG_WARNING("Artec Algorithms not available on this computer");
+    }
 
     std::cout << "Press enter to quit..." << std::endl;
     getchar();

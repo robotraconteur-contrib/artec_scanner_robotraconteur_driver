@@ -24,6 +24,10 @@
     ROBOTRACONTEUR_LOG_ERROR_COMPONENTNAME(RR::RobotRaconteurNode::weak_sp(), ThirdParty, \
     "artec_scanner", "", 0, msg) \
 
+#define RR_ARTEC_LOG_WARNING(msg) \
+    ROBOTRACONTEUR_LOG_WARNING_COMPONENTNAME(RR::RobotRaconteurNode::weak_sp(), ThirdParty, \
+    "artec_scanner", "", 0, msg) \
+
 #define RR_ARTEC_LOG_INFO(msg) \
     ROBOTRACONTEUR_LOG_INFO_COMPONENTNAME(RR::RobotRaconteurNode::weak_sp(), ThirdParty, \
     "artec_scanner", "", 0, msg) \
