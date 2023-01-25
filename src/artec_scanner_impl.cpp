@@ -166,8 +166,15 @@ namespace artec_scanner_robotraconteur_driver
             RR_ARTEC_LOG_ERROR("Attempt to free invalid model: " << model_handle);
             throw RR::InvalidArgumentException("Invalid workset handle");
         }
-
         models.erase(e);
+        try
+        {
+            RR::ServerContext::GetCurrentServerContext()->ReleaseServicePath("models[" + 
+                boost::lexical_cast<std::string>(model_handle) + "]");
+        }
+        catch (std::exception&) {}
+
+        RR_ARTEC_LOG_INFO("Freed model: " << model_handle);
     }
 
     int32_t ArtecScannerImpl::model_load(const std::string& project_name)
