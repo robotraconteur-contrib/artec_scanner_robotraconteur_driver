@@ -48,9 +48,7 @@ namespace artec_scanner_robotraconteur_driver
         this->scanner=scanner;
         if (scanner)
         {
-            RR_CALL_ARTEC(scanner->createFrameProcessor(&processor), "error creating frame processor");         
-        RR_CALL_ARTEC(scanner->createFrameProcessor(&processor), "error creating frame processor");         
-            RR_CALL_ARTEC(scanner->createFrameProcessor(&processor), "error creating frame processor");         
+            RR_CALL_ARTEC(scanner->createFrameProcessor(&processor), "error creating frame processor");      
         }
 
     }
