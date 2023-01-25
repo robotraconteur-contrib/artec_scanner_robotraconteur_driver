@@ -85,7 +85,11 @@ int main(int argc, char* argv[])
         scanner_impl->set_save_path(save_path);
     }
     
-    RR::ServerNodeSetup node_setup(ROBOTRACONTEUR_SERVICE_TYPES, "experimental.artec_scanner", 64238);
+    RR::RobotRaconteurNodeSetup node_setup(RR::RobotRaconteurNode::sp(),
+        ROBOTRACONTEUR_SERVICE_TYPES, "experimental.artec_scanner", 64238,
+        RR::RobotRaconteurNodeSetupFlags_SERVER_DEFAULT | RR::RobotRaconteurNodeSetupFlags_JUMBO_MESSAGE, 
+        RR::RobotRaconteurNodeSetupFlags_SERVER_DEFAULT_ALLOWED_OVERRIDE,
+        argc, argv);
     RR::RobotRaconteurNode::s()->RegisterService("scanner", "experimental.artec_scanner", scanner_impl);
     if (!artec::sdk::algorithms::checkAlgorithmsPermission())
     {
