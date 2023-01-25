@@ -293,15 +293,14 @@ namespace artec_scanner_robotraconteur_driver
     experimental::artec_scanner::CompositeContainerPtr RRArtecModel::get_composite_container()
     {
         auto container = model->getCompositeContainer();
+        
         if (!container)
-        {  
-            if (!container)
-            {
-                RR_ARTEC_LOG_ERROR("Attempt to access invalid composite container");
-                throw RR::InvalidArgumentException("Invalid composite container");
-            }
-            return RR_MAKE_SHARED<RRCompositeContainer>(container);
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to access invalid composite container");
+            throw RR::InvalidArgumentException("Invalid composite container");
         }
+        return RR_MAKE_SHARED<RRCompositeContainer>(container);
+        
     }
 
     RRScan::RRScan(artec::sdk::base::IScan* scan)
