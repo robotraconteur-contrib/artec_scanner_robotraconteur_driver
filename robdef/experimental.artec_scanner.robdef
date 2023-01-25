@@ -79,7 +79,7 @@ enum SerialRegistrationType
     fine_textured
 end
 
-enum SmallObjectFilterType
+enum SmallObjectsFilterType
     leave_biggest_object = 0,
     filter_by_threshold
 end
@@ -193,8 +193,8 @@ struct SerialRegistrationAlgorithm
     field varvalue{string} extended
 end
 
-struct SmallObjectFilterAlgorithm
-    field SmallObjectFilterType filter_type
+struct SmallObjectsFilterAlgorithm
+    field SmallObjectsFilterType filter_type
     field int32 filter_threshold
     field varvalue{string} extended
 end
