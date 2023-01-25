@@ -214,7 +214,7 @@ namespace artec_scanner_robotraconteur_driver
         return model_handle;
     }
 
-    void ArtecScannerImpl::save_model(const std::string& project_name, int32_t model_handle)
+    void ArtecScannerImpl::save_model(int32_t model_handle,const std::string& project_name)
     {
         if (!save_path)
         {
@@ -256,7 +256,7 @@ namespace artec_scanner_robotraconteur_driver
     }
 
     RR::GeneratorPtr<rr_artec::RunAlgorithmsStatusPtr,void >
-        ArtecScannerImpl::run_algorithms(const RR::RRListPtr<RR::RRValue>& algorithms, int32_t input_model_handle)
+        ArtecScannerImpl::run_algorithms(int32_t input_model_handle, const RR::RRListPtr<RR::RRValue>& algorithms)
     {
         throw RR::NotImplementedException("Not implemented");
     }

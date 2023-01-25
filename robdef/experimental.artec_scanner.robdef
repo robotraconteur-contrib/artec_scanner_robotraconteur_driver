@@ -220,9 +220,9 @@ object ArtecScanner
     objref Model{int32} models
 
     function int32 load_model(string project_name)
-    function void save_model(string project_name, int32 model_handle)
+    function void save_model(int32 model_handle, string project_name)
 
-    function RunAlgorithmsStatus{generator} run_algorithms(varvalue{list} algorithms, int32 input_model_handle)
+    function RunAlgorithmsStatus{generator} run_algorithms(int32 input_model_handle, varvalue{list} algorithms)
 end
 
 object Model
