@@ -9,6 +9,7 @@ find_package(RobotRaconteur REQUIRED)
 find_package(RobotRaconteurCompanion REQUIRED)
 find_package(ArtecSDK REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 ROBOTRACONTEUR_GENERATE_THUNK(RR_THUNK_SRCS RR_THUNK_HDRS
     experimental.artec_scanner.robdef
@@ -28,6 +29,6 @@ add_executable(artec_scanner_robotraconteur_driver
 
 target_include_directories(artec_scanner_robotraconteur_driver PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(artec_scanner_robotraconteur_driver RobotRaconteurCompanion RobotRaconteurCore 
-ArtecSDK::Base ArtecSDK::Algorithms ArtecSDK::Capturing ArtecSDK::Scanning ArtecSDK::Project)
+ArtecSDK::Base ArtecSDK::Algorithms ArtecSDK::Capturing ArtecSDK::Scanning ArtecSDK::Project Eigen3::Eigen)
 
 install(TARGETS artec_scanner_robotraconteur_driver)

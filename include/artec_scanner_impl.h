@@ -10,12 +10,52 @@ namespace artec_scanner_robotraconteur_driver
     {
     public:
         artec::sdk::base::TRef<artec::sdk::base::IModel> model;
-        boost::mutex this_lock;
-        bool busy = false;
+
         RRArtecModel();
+
+        uint32_t get_scan_count() override;
+
+        experimental::artec_scanner::ScanPtr get_scans(int32_t ind) override;
+
+        RobotRaconteur::rr_bool get_composite_container_valid() override;
+
+        experimental::artec_scanner::CompositeContainerPtr get_composite_container() override;
+    };
+    using RRArtecModelPtr = boost::shared_ptr<RRArtecModel>;
+
+    class RRScan : public experimental::artec_scanner::Scan_default_impl
+    {  
+    public:
+        artec::sdk::base::IScan* scan;
+
+        RRScan(artec::sdk::base::IScan* scan);
+
+        com::robotraconteur::geometry::Transform get_scan_transform() override;
+        uint32_t get_frame_count() override;
+        com::robotraconteur::geometry::shapes::MeshPtr getf_frame_mesh(uint32_t ind) override;
+
+        RobotRaconteur::RRArrayPtr<uint8_t > getf_frame_mesh_obj(uint32_t ind) override;
+
+        com::robotraconteur::geometry::Transform getf_frame_transform(uint32_t ind) override;
     };
 
-    using RRArtecModelPtr = boost::shared_ptr<RRArtecModel>;
+    class RRCompositeContainer : public experimental::artec_scanner::CompositeContainer
+    {
+    public:
+        artec::sdk::base::ICompositeContainer *container;
+
+        RRCompositeContainer(artec::sdk::base::ICompositeContainer *container);
+
+        uint32_t get_composite_mesh_count() override;
+        com::robotraconteur::geometry::Transform get_composite_container_transform() override;
+        com::robotraconteur::geometry::shapes::MeshPtr getf_composite_mesh(uint32_t ind) override;
+
+        RobotRaconteur::RRArrayPtr<uint8_t> getf_composite_mesh_obj(uint32_t ind) override;
+
+        com::robotraconteur::geometry::Transform getf_composite_mesh_transform(uint32_t ind) override;
+
+    };
+
 
     class ScanningProcedure;
     

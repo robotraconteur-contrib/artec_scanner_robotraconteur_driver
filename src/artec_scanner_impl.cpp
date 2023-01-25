@@ -37,12 +37,6 @@ namespace rr_artec = experimental::artec_scanner;
 
 namespace artec_scanner_robotraconteur_driver
 {
-
-    RRArtecModel::RRArtecModel()
-    {
-        RR_CALL_ARTEC( asdk::createModel( &model ), "Error creating artec model");
-    }
-
     void ArtecScannerImpl::Init(artec::sdk::capturing::IScanner* scanner)
     {
         this->scanner=scanner;
@@ -87,7 +81,7 @@ namespace artec_scanner_robotraconteur_driver
         
         RR_CALL_ARTEC(processor->reconstructAndTexturizeMesh( &mesh, frame ), "Error reconstructing mesh");
         
-        com::robotraconteur::geometry::shapes::MeshPtr rr_mesh = ConvertArtecMeshToRR(mesh);
+        com::robotraconteur::geometry::shapes::MeshPtr rr_mesh = ConvertArtecFrameMeshToRR(mesh);
         RR_ARTEC_LOG_INFO("Scanner capture complete");
         return rr_mesh;
     }
@@ -266,6 +260,140 @@ namespace artec_scanner_robotraconteur_driver
         ArtecScannerImpl::run_algorithms(int32_t input_model_handle, const RR::RRListPtr<RR::RRValue>& algorithms)
     {
         throw RR::NotImplementedException("Not implemented");
+    }
+
+
+    RRArtecModel::RRArtecModel()
+    {
+        RR_CALL_ARTEC( asdk::createModel( &model ), "Error creating artec model");
+    }
+
+    uint32_t RRArtecModel::get_scan_count()
+    {
+        return model->getSize();
+    }
+
+    experimental::artec_scanner::ScanPtr RRArtecModel::get_scans(int32_t ind)
+    {
+        auto scan = model->getElement(ind);
+        if (!scan)
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to access invalid scan index: " << ind);
+            throw RR::InvalidArgumentException("Invalid scan index");
+        }
+        return RR_MAKE_SHARED<RRScan>(scan);
+    }
+
+    RobotRaconteur::rr_bool RRArtecModel::get_composite_container_valid()
+    {
+        auto container = model->getCompositeContainer();
+        return RR::rr_bool(container != 0 ? 1 : 0);
+    }
+
+    experimental::artec_scanner::CompositeContainerPtr RRArtecModel::get_composite_container()
+    {
+        auto container = model->getCompositeContainer();
+        if (!container)
+        {  
+            if (!container)
+            {
+                RR_ARTEC_LOG_ERROR("Attempt to access invalid composite container");
+                throw RR::InvalidArgumentException("Invalid composite container");
+            }
+            return RR_MAKE_SHARED<RRCompositeContainer>(container);
+        }
+    }
+
+    RRScan::RRScan(artec::sdk::base::IScan* scan)
+    {
+        this->scan = scan;
+    }
+
+    com::robotraconteur::geometry::Transform RRScan::get_scan_transform()
+    {
+        auto t = scan->getScanTransformation();
+        return ConvertArtecTransformToRR(t);
+    }
+
+    uint32_t RRScan::get_frame_count()
+    {
+        return boost::lexical_cast<uint32_t>(scan->getSize());
+    }
+
+    com::robotraconteur::geometry::shapes::MeshPtr RRScan::getf_frame_mesh(uint32_t ind)
+    {
+        auto mesh = scan->getElement(ind);
+        if (!mesh)
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to access invalid scan frame mesh index: " << ind);
+            throw RR::InvalidArgumentException("Invalid scan frame mesh index");
+        }
+        return ConvertArtecFrameMeshToRR(mesh);
+    }
+
+    RobotRaconteur::RRArrayPtr<uint8_t > RRScan::getf_frame_mesh_obj(uint32_t ind)
+    {
+        auto mesh = scan->getElement(ind);
+        if (!mesh)
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to access invalid scan frame mesh index: " << ind);
+            throw RR::InvalidArgumentException("Invalid scan frame mesh index");
+        }
+        return ConvertArtecFrameMeshToObjBytes(mesh);
+    }
+
+    com::robotraconteur::geometry::Transform RRScan::getf_frame_transform(uint32_t ind)
+    {
+        auto t = scan->getTransformation(ind);
+        if (!t)
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to access invalid scan frame transform index: " << ind);
+            throw RR::InvalidArgumentException("Invalid scan frame transform index");
+        }
+        return ConvertArtecTransformToRR(t);
+    }
+
+    RRCompositeContainer::RRCompositeContainer(artec::sdk::base::ICompositeContainer *container)
+    {
+        this->container = container;
+    }
+
+    uint32_t RRCompositeContainer::get_composite_mesh_count()
+    {
+        return container->getSize();
+    }
+
+    com::robotraconteur::geometry::Transform RRCompositeContainer::get_composite_container_transform()
+    {
+        auto t = container->getContainerTransformation();
+        return ConvertArtecTransformToRR(t);
+    }
+    com::robotraconteur::geometry::shapes::MeshPtr RRCompositeContainer::getf_composite_mesh(uint32_t ind)
+    {
+        auto mesh = container->getElement(ind);
+        if (!mesh)
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to access invalid composite mesh index: " << ind);
+            throw RR::InvalidArgumentException("Invalid composite mesh index");
+        }
+        return ConvertArtecCompositeMeshToRR(mesh);
+    }
+
+    RobotRaconteur::RRArrayPtr<uint8_t> RRCompositeContainer::getf_composite_mesh_obj(uint32_t ind)
+    {  
+        auto mesh = container->getElement(ind);
+        if (!mesh)
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to access invalid composite mesh index: " << ind);
+            throw RR::InvalidArgumentException("Invalid composite mesh index");
+        }
+        return ConvertArtecCompositeMeshToObjBytes(mesh);
+    }
+
+    com::robotraconteur::geometry::Transform RRCompositeContainer::getf_composite_mesh_transform(uint32_t ind)
+    {
+        auto t = container->getTransformation(ind);
+        return ConvertArtecTransformToRR(t);
     }
 
 }

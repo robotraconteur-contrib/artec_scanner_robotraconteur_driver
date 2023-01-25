@@ -2,9 +2,11 @@ service experimental.artec_scanner
 
 import com.robotraconteur.geometry.shapes
 import com.robotraconteur.action
+import com.robotraconteur.geometry
 
 using com.robotraconteur.geometry.shapes.Mesh
 using com.robotraconteur.action.ActionStatusCode
+using com.robotraconteur.geometry.Transform
 
 enum RegistrationAlgorithmType
     icp = 0x0,
@@ -227,9 +229,23 @@ end
 
 object Model
     property uint32 scan_count [readonly]
-    function Mesh getf_scan(uint32 ind)
+    objref Scan{int32} scans
+    property bool composite_container_valid [readonly]
+    objref CompositeContainer composite_container
+end
+
+object Scan
+    property Transform scan_transform [readonly]
+    property uint32 frame_count [readonly]
+    function Mesh getf_frame_mesh(uint32 ind)
+    function uint8[] getf_frame_mesh_obj(uint32 ind)
+    function Transform getf_frame_transform(uint32 ind)    
+end
+
+object CompositeContainer
     property uint32 composite_mesh_count [readonly]
-    function Mesh getf_composite_mesh_simple(uint32 ind)
-    function uint8[] getf_scan_obj(uint32 ind)
-    function uint8[] getf_composite_mesh_obj()
+    function Mesh getf_composite_mesh(uint32 ind)
+    function uint8[] getf_composite_mesh_obj(uint32 ind)
+    function Transform getf_composite_mesh_transform(uint32 ind)
+    property Transform composite_container_transform [readonly]
 end

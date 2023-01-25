@@ -1,6 +1,7 @@
 #include "experimental__artec_scanner.h"
 #include "experimental__artec_scanner_stubskel.h"
 #include <artec/sdk/base/IFrameMesh.h>
+#include <artec/sdk/base/ICompositeMesh.h>
 #include <artec/sdk/base/TRef.h>
 #include <artec/sdk/base/AlgorithmWorkset.h>
 #include <artec/sdk/base/IModel.h>
@@ -29,7 +30,15 @@
 
 namespace artec_scanner_robotraconteur_driver
 {
-    com::robotraconteur::geometry::shapes::MeshPtr ConvertArtecMeshToRR(artec::sdk::base::IFrameMesh* mesh);
+    com::robotraconteur::geometry::shapes::MeshPtr ConvertArtecFrameMeshToRR(artec::sdk::base::IFrameMesh* mesh);
+
+    com::robotraconteur::geometry::shapes::MeshPtr ConvertArtecCompositeMeshToRR(artec::sdk::base::ICompositeMesh* mesh);
+
+    RobotRaconteur::RRArrayPtr<uint8_t> ConvertArtecFrameMeshToObjBytes(artec::sdk::base::IFrameMesh* mesh);
+
+    RobotRaconteur::RRArrayPtr<uint8_t> ConvertArtecCompositeMeshToObjBytes(artec::sdk::base::ICompositeMesh* mesh);
+
+    com::robotraconteur::geometry::Transform ConvertArtecTransformToRR(const artec::sdk::base::Matrix4x4D& transform);
 
     void ThrowArtecErrorCode(artec::sdk::base::ErrorCode ec, const std::string& user_msg);
 
