@@ -170,11 +170,11 @@ namespace artec_scanner_robotraconteur_driver
         models.erase(e);
     }
 
-    int32_t ArtecScannerImpl::load_model(const std::string& project_name)
+    int32_t ArtecScannerImpl::model_load(const std::string& project_name)
     {
         if (!save_path)
         {
-            RR_ARTEC_LOG_ERROR("load_model called but project save path not specified")
+            RR_ARTEC_LOG_ERROR("model_load called but project save path not specified")
             throw RR::InvalidOperationException("Project save path not specified");
         }
         boost::regex r_project_name("^[\\w\\-]+$");
@@ -214,11 +214,11 @@ namespace artec_scanner_robotraconteur_driver
         return model_handle;
     }
 
-    void ArtecScannerImpl::save_model(int32_t model_handle,const std::string& project_name)
+    void ArtecScannerImpl::model_save(int32_t model_handle,const std::string& project_name)
     {
         if (!save_path)
         {
-            RR_ARTEC_LOG_ERROR("load_model called but project save path not specified")
+            RR_ARTEC_LOG_ERROR("model_save called but project save path not specified")
             throw RR::InvalidOperationException("Project save path not specified");
         }
         boost::regex r_project_name("^[\\w\\-]+$");

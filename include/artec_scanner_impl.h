@@ -54,9 +54,9 @@ namespace artec_scanner_robotraconteur_driver
             void model_free(int32_t model_handle) override;
             experimental::artec_scanner::ModelPtr get_models(int32_t model_handle) override;
 
-            int32_t load_model(const std::string& project_name) override;
+            int32_t model_load(const std::string& project_name) override;
 
-            void save_model(int32_t model_handle, const std::string& project_name) override;
+            void model_save(int32_t model_handle, const std::string& project_name) override;
 
             RobotRaconteur::GeneratorPtr<experimental::artec_scanner::RunAlgorithmsStatusPtr,void >
                 run_algorithms(int32_t input_model_handle, const RobotRaconteur::RRListPtr<RobotRaconteur::RRValue>& algorithms) override;
