@@ -224,6 +224,7 @@ object ArtecScanner
     function int32 model_load(string project_name)
     function void model_save(int32 model_handle, string project_name)
 
+    function varvalue initialize_algorithm(int32 input_model_handle, string algorithm)
     function RunAlgorithmsStatus{generator} run_algorithms(int32 input_model_handle, varvalue{list} algorithms)
 end
 
@@ -238,14 +239,14 @@ object Scan
     property Transform scan_transform [readonly]
     property uint32 frame_count [readonly]
     function Mesh getf_frame_mesh(uint32 ind)
-    function uint8[] getf_frame_mesh_obj(uint32 ind)
+    function uint8[] getf_frame_mesh_stl(uint32 ind)
     function Transform getf_frame_transform(uint32 ind)    
 end
 
 object CompositeContainer
     property uint32 composite_mesh_count [readonly]
     function Mesh getf_composite_mesh(uint32 ind)
-    function uint8[] getf_composite_mesh_obj(uint32 ind)
+    function uint8[] getf_composite_mesh_stl(uint32 ind)
     function Transform getf_composite_mesh_transform(uint32 ind)
     property Transform composite_container_transform [readonly]
 end

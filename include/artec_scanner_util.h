@@ -38,9 +38,7 @@ namespace artec_scanner_robotraconteur_driver
 
     com::robotraconteur::geometry::shapes::MeshPtr ConvertArtecCompositeMeshToRR(artec::sdk::base::ICompositeMesh* mesh);
 
-    RobotRaconteur::RRArrayPtr<uint8_t> ConvertArtecFrameMeshToObjBytes(artec::sdk::base::IFrameMesh* mesh);
-
-    RobotRaconteur::RRArrayPtr<uint8_t> ConvertArtecCompositeMeshToObjBytes(artec::sdk::base::ICompositeMesh* mesh);
+    RobotRaconteur::RRArrayPtr<uint8_t> ConvertArtecMeshToStlBytes(artec::sdk::base::IMesh* mesh);
 
     com::robotraconteur::geometry::Transform ConvertArtecTransformToRR(const artec::sdk::base::Matrix4x4D& transform);
 

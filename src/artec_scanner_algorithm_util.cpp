@@ -1,6 +1,11 @@
 #include "artec_scanner_algorithm_util.h"
 
 #include <artec/sdk/algorithms/Algorithms.h>
+#include <artec/sdk/base/IScan.h>
+
+#include "artec_scanner_impl.h"
+
+#define RR_ARTEC_PREFIX "experimental.artec_scanner."
 
 namespace asdk {
     using namespace artec::sdk::base;
@@ -179,6 +184,140 @@ void create_outliers_removal_algorithm(artec::sdk::algorithms::IAlgorithm** alg,
     s.resolution = settings->resolution;
 
     RR_CALL_ARTEC(asdk::createOutliersRemovalAlgorithm(alg, &s), "Could not create OutlierRemovalsAlgorithm");
+}
+
+RobotRaconteur::RRValuePtr util_initialize_algorithm(boost::shared_ptr<RRArtecModel> model, const std::string& algorithm)
+{
+    if (model->model->getSize() <= 0)
+    {
+        RR_ARTEC_LOG_ERROR("Model passed to initailez_algorithm does not contain any scans")
+        throw RR::InvalidArgumentException("Model passed to initialize_algorithm does not contain any scans");
+    }
+
+    auto scanner_type = model->model->getElement(0)->getScannerType();
+
+    if (algorithm == "AutoAlignAlgorithm" || algorithm == RR_ARTEC_PREFIX "AutoAlignAlgorithm" )
+    {
+        return rr_artec::AutoAlignAlgorithmPtr(new rr_artec::AutoAlignAlgorithm());
+    }
+
+    if (algorithm == "FastFusionAlgorithm" || algorithm == RR_ARTEC_PREFIX "FastFusionAlgorithm" )
+    {
+        asdk::FastFusionSettings a;
+        asdk::initializeFastFusionSettings(&a, scanner_type);
+        auto rr = rr_artec::FastFusionAlgorithmPtr(new rr_artec::FastFusionAlgorithm());
+        rr->resolution = a.resolution;
+        rr->radius = a.radius;
+        rr->generate_normals.value = a.generateNormals ? 1 : 0;
+        return rr;
+    }
+
+    if (algorithm == "FastMeshSimplificationAlgorithm" || algorithm == RR_ARTEC_PREFIX "FastMeshSimplificationAlgorithm")
+    {
+        asdk::FastMeshSimplificationSettings a;
+        asdk::initializeFastMeshSimplificationSettings(&a, scanner_type);
+        auto rr = rr_artec::FastMeshSimplificationAlgorithmPtr(new rr_artec::FastMeshSimplificationAlgorithm());
+        rr->triangle_number = a.triangleNumber;
+        rr-> keep_boundary.value = a.keepBoundary ? 1 : 0;
+        rr->enable_additional_criteria = a.enableAdditionalCriteria ? 1 : 0;
+        rr->enable_distance_threshold = a.enableDistanceThreshold ? 1 : 0;
+        rr->distance_threshold = a.distanceThreshold;
+        rr->enable_angle_threshold = a.enableAngleThreshold ? 1 : 0;
+        rr->angle_threshold = a.angleThreshold;
+        rr->enable_aspect_ratio_threshold = a.enableAspectRatioThreshold ? 1 : 0;
+        rr->aspect_ratio_threshold = a.enableAspectRatioThreshold;
+        return rr;
+    }
+
+    if (algorithm == "GlobalRegistrationAlgorithm" || algorithm == RR_ARTEC_PREFIX "GlobalRegistrationAlgorithm" )
+    {
+        auto rr = rr_artec::GlobalRegistrationAlgorithmPtr(new rr_artec::GlobalRegistrationAlgorithm());
+        rr->registration_type = rr_artec::GlobalRegistrationType::geometry;
+        return rr;
+    }
+
+    if (algorithm == "LoopClosureAlgorithm" || algorithm == RR_ARTEC_PREFIX "LoopClosureAlgorithm" )
+    {
+        return rr_artec::LoopClosureAlgorithmPtr(new rr_artec::LoopClosureAlgorithm());
+    }
+
+    if (algorithm == "MeshSimplificationAlgorithm" || algorithm == RR_ARTEC_PREFIX "MeshSimplificationAlgorithm" )
+    {
+        asdk::MeshSimplificationSettings a;
+        asdk::initializeMeshSimplificationSettings(&a, scanner_type, asdk::SimplifyType_Accuracy );
+        auto rr = rr_artec::MeshSimplificationAlgorithmPtr(new rr_artec::MeshSimplificationAlgorithm());
+        rr->simplify_type = (rr_artec::SimplifyType::SimplifyType)a.simplifyType;
+        rr->simplify_metrics = (rr_artec::SimplifyMetric::SimplifyMetric)a.simplifyMetrics;
+        rr->triangle_number = a.triangleNumber;
+        rr->keep_boundary = a.keepBoundary ? 1 : 0;
+        rr->angle_threshold = a.angleThreshold;
+        rr->remesh_edge_threshold = a.remeshEdgeThreshold;
+        rr->error = a.error;
+        return rr;
+    }
+
+    if (algorithm == "OutliersRemovalAlgorithm" || algorithm == RR_ARTEC_PREFIX "OutliersRemovalAlgorithm" )
+    {
+        asdk::OutliersRemovalSettings a;
+        asdk::initializeOutliersRemovalSettings(&a, scanner_type);
+        auto rr = rr_artec::OutliersRemovalAlgorithmPtr(new rr_artec::OutliersRemovalAlgorithm());
+        rr->standard_deviation_multiplier = a.standardDeviationMultiplier;
+        rr->resolution = a.resolution;
+        return rr;
+    }
+
+    if (algorithm == "PoissonFusionAlgorithm" || algorithm == RR_ARTEC_PREFIX "PoissonFusionAlgorithm" )
+    {
+        asdk::PoissonFusionSettings a;
+        asdk::initializePoissonFusionSettings(&a, scanner_type);
+        auto rr = rr_artec::PoissonFusionAlgorithmPtr(new rr_artec::PoissonFusionAlgorithm());
+        rr->fusion_type = (rr_artec::PoissonFusionType::PoissonFusionType)a.fusionType;
+        rr->fill_type = (rr_artec::FillHolesType::FillHolesType)a.fillType;
+        rr->resolution = a.resolution;
+        rr->max_hole_radius = a.maxHoleRadius;
+        rr->remove_targets.value = a.removeTargets ? 1 : 0;
+        rr->target_inner_size = a.targetInnerSize;
+        rr->target_outer_size = a.targetOuterSize;
+        rr->generate_normals = a.generateNormals ? 1 : 0;
+        rr->input_filter_type = (rr_artec::InputFilter::InputFilter)a.inputFilterType;
+        return rr;
+    }
+
+    if (algorithm == "SerialRegistrationAlgorithm" || algorithm == RR_ARTEC_PREFIX "SerialRegistrationAlgorithm" )
+    {       
+        auto rr = rr_artec::SerialRegistrationAlgorithmPtr(new rr_artec::SerialRegistrationAlgorithm());
+        rr->registration_type = (rr_artec::SerialRegistrationType::rough);        
+        return rr;
+    }
+
+    if (algorithm == "SmallObjectsFilterAlgorithm" || algorithm == RR_ARTEC_PREFIX "SmallObjectsFilterAlgorithm" )
+    {
+        asdk::SmallObjectsFilterSettings a;
+        asdk::initializeSmallObjectsFilterSettings(&a, scanner_type);
+        auto rr = rr_artec::SmallObjectsFilterAlgorithmPtr(new rr_artec::SmallObjectsFilterAlgorithm());
+        rr->filter_type = (rr_artec::SmallObjectsFilterType::SmallObjectsFilterType)a.filterType;
+        rr->filter_threshold = a.filterThreshold;
+        return rr;
+    }
+
+    if (algorithm == "TexturizationAlgorithm" || algorithm == RR_ARTEC_PREFIX "TexturizationAlgorithm" )
+    {
+        asdk::TexturizationSettings a;
+        asdk::initializeTexturizationSettings(&a, scanner_type);
+        auto rr = rr_artec::TexturizationAlgorithmPtr(new rr_artec::TexturizationAlgorithm());
+        rr->texturize_type = (rr_artec::TexturizeType::TexturizeType)a.texturizeType;
+        rr->texturize_resolution = (rr_artec::TexturizeResolution::TexturizeResolution)a.texturizeResolution;
+        rr->enable_background_segmentation.value = a.enableBackgroundSegmentation ? 1 : 0;
+        rr->enable_ambient_lighting_compensation.value = a.enableAmbientLightingCompensation ? 1 : 0;
+        rr->atlas_unfolding_polygon_limit = a.atlasUnfoldingPolygonLimit;
+        rr->enable_texture_inpainting.value = a.enableTextureInpainting ? 1 : 0;
+        rr->use_texture_normalization = a.useTextureNormalization ? 1 : 0;
+        rr->input_filter_type = (rr_artec::InputFilter::InputFilter)a.inputFilterType;
+        return rr;
+    }
+
+    RR_ARTEC_LOG_ERROR("Invalid algorithm requested: " << algorithm);
+    throw RR::InvalidArgumentException("Invalid algorithm requested");
 }
 
 }

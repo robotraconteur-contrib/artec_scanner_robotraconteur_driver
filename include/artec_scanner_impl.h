@@ -34,7 +34,7 @@ namespace artec_scanner_robotraconteur_driver
         uint32_t get_frame_count() override;
         com::robotraconteur::geometry::shapes::MeshPtr getf_frame_mesh(uint32_t ind) override;
 
-        RobotRaconteur::RRArrayPtr<uint8_t > getf_frame_mesh_obj(uint32_t ind) override;
+        RobotRaconteur::RRArrayPtr<uint8_t > getf_frame_mesh_stl(uint32_t ind) override;
 
         com::robotraconteur::geometry::Transform getf_frame_transform(uint32_t ind) override;
     };
@@ -50,7 +50,7 @@ namespace artec_scanner_robotraconteur_driver
         com::robotraconteur::geometry::Transform get_composite_container_transform() override;
         com::robotraconteur::geometry::shapes::MeshPtr getf_composite_mesh(uint32_t ind) override;
 
-        RobotRaconteur::RRArrayPtr<uint8_t> getf_composite_mesh_obj(uint32_t ind) override;
+        RobotRaconteur::RRArrayPtr<uint8_t> getf_composite_mesh_stl(uint32_t ind) override;
 
         com::robotraconteur::geometry::Transform getf_composite_mesh_transform(uint32_t ind) override;
 
@@ -99,6 +99,8 @@ namespace artec_scanner_robotraconteur_driver
             int32_t model_load(const std::string& project_name) override;
 
             void model_save(int32_t model_handle, const std::string& project_name) override;
+
+            RobotRaconteur::RRValuePtr initialize_algorithm(int32_t input_model_handle, const std::string& algorithm) override;
 
             RobotRaconteur::GeneratorPtr<experimental::artec_scanner::RunAlgorithmsStatusPtr,void >
                 run_algorithms(int32_t input_model_handle, const RobotRaconteur::RRListPtr<RobotRaconteur::RRValue>& algorithms) override;

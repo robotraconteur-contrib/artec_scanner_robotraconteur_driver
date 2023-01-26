@@ -6,7 +6,7 @@
 #include <artec/sdk/capturing/IFrame.h>
 #include <artec/sdk/base/BaseSdkDefines.h>
 #include <artec/sdk/base/Log.h>
-#include <artec/sdk/base/io/ObjIO.h>
+#include <artec/sdk/base/io/StlIO.h>
 #include <artec/sdk/base/IFrameMesh.h>
 #include <artec/sdk/base/TArrayRef.h>
 #include <artec/sdk/base/io/PngIO.h>
@@ -15,6 +15,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <RobotRaconteurCompanion/Converters/EigenConverters.h>
+#include <boost/filesystem.hpp>
 namespace asdk {
     using namespace artec::sdk::base;
     using namespace artec::sdk::capturing;
@@ -175,15 +176,24 @@ namespace artec_scanner_robotraconteur_driver
         return ret;
     }
 
-    RobotRaconteur::RRArrayPtr<uint8_t> ConvertArtecFrameMeshToObjBytes(artec::sdk::base::IFrameMesh* mesh)
+    RobotRaconteur::RRArrayPtr<uint8_t> ConvertArtecMeshToStlBytes(artec::sdk::base::IMesh* mesh)
     {
-        throw RR::NotImplementedException("");
+        boost::filesystem::path temp = boost::filesystem::unique_path();
+        RR_CALL_ARTEC(asdk::io::saveStlMeshToFileAscii(temp.c_str(), mesh), "Could not save mesh to stl");
+        std::ifstream file(temp.string(), std::ios::binary | std::ios::ate);
+        std::streamsize size = file.tellg();
+        file.seekg(0, std::ios::beg);
+        auto ret = RR::AllocateRRArray<uint8_t>(size);
+        if (!file.read((char*)ret->data(), size))
+        {
+            RR_ARTEC_LOG_ERROR("Could not read temporary mesh stl file: " << temp);
+            throw RR::OperationFailedException("Could not read temporary mesh stl file");
+        }
+        file.close();
+        boost::system::error_code ec;
+        boost::filesystem::remove(temp, ec);
+        return ret;
     }   
-
-    RobotRaconteur::RRArrayPtr<uint8_t> ConvertArtecCompositeMeshToObjBytes(artec::sdk::base::ICompositeMesh* mesh)
-    {
-        throw RR::NotImplementedException("");
-    }
 
     com::robotraconteur::geometry::Transform ConvertArtecTransformToRR(const artec::sdk::base::Matrix4x4D& transform)
     {

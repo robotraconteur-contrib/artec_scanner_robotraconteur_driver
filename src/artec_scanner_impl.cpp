@@ -19,6 +19,7 @@
 #include "artec_scanner_util.h"
 #include "artec_scanning_procedure.h"
 #include "artec_scanner_algorithm.h"
+#include "artec_scanner_algorithm_util.h"
 
 #include <boost/filesystem.hpp>
 
@@ -257,6 +258,12 @@ namespace artec_scanner_robotraconteur_driver
         RR_ARTEC_LOG_INFO("Saved model: " << model_handle << " to file " << file_path);
     }
 
+    RobotRaconteur::RRValuePtr ArtecScannerImpl::initialize_algorithm(int32_t input_model_handle, const std::string& algorithm)
+    {
+        auto model = RR_DYNAMIC_POINTER_CAST<RRArtecModel>(get_models(input_model_handle));
+        return util_initialize_algorithm(model, algorithm);
+    }
+
     RR::GeneratorPtr<rr_artec::RunAlgorithmsStatusPtr,void >
         ArtecScannerImpl::run_algorithms(int32_t input_model_handle, const RR::RRListPtr<RR::RRValue>& algorithms)
     {
@@ -335,7 +342,7 @@ namespace artec_scanner_robotraconteur_driver
         return ConvertArtecFrameMeshToRR(mesh);
     }
 
-    RobotRaconteur::RRArrayPtr<uint8_t > RRScan::getf_frame_mesh_obj(uint32_t ind)
+    RobotRaconteur::RRArrayPtr<uint8_t > RRScan::getf_frame_mesh_stl(uint32_t ind)
     {
         auto mesh = scan->getElement(ind);
         if (!mesh)
@@ -343,7 +350,7 @@ namespace artec_scanner_robotraconteur_driver
             RR_ARTEC_LOG_ERROR("Attempt to access invalid scan frame mesh index: " << ind);
             throw RR::InvalidArgumentException("Invalid scan frame mesh index");
         }
-        return ConvertArtecFrameMeshToObjBytes(mesh);
+        return ConvertArtecMeshToStlBytes(mesh);
     }
 
     com::robotraconteur::geometry::Transform RRScan::getf_frame_transform(uint32_t ind)
@@ -383,7 +390,7 @@ namespace artec_scanner_robotraconteur_driver
         return ConvertArtecCompositeMeshToRR(mesh);
     }
 
-    RobotRaconteur::RRArrayPtr<uint8_t> RRCompositeContainer::getf_composite_mesh_obj(uint32_t ind)
+    RobotRaconteur::RRArrayPtr<uint8_t> RRCompositeContainer::getf_composite_mesh_stl(uint32_t ind)
     {  
         auto mesh = container->getElement(ind);
         if (!mesh)
@@ -391,7 +398,7 @@ namespace artec_scanner_robotraconteur_driver
             RR_ARTEC_LOG_ERROR("Attempt to access invalid composite mesh index: " << ind);
             throw RR::InvalidArgumentException("Invalid composite mesh index");
         }
-        return ConvertArtecCompositeMeshToObjBytes(mesh);
+        return ConvertArtecMeshToStlBytes(mesh);
     }
 
     com::robotraconteur::geometry::Transform RRCompositeContainer::getf_composite_mesh_transform(uint32_t ind)

@@ -51,4 +51,8 @@ namespace artec_scanner_robotraconteur_driver
         const experimental::artec_scanner::OutliersRemovalAlgorithmPtr& settings, 
         artec::sdk::base::ScannerType scanner_type);
 
+    class RRArtecModel;
+
+    RobotRaconteur::RRValuePtr util_initialize_algorithm(boost::shared_ptr<RRArtecModel> model, const std::string& algorithm);
+
 }
