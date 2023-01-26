@@ -39,6 +39,10 @@ namespace artec_scanner_robotraconteur_driver
         const experimental::artec_scanner::MeshSimplificationAlgorithmPtr& settings, 
         artec::sdk::base::ScannerType scanner_type);
 
+    void create_fast_mesh_simplification_algorithm(artec::sdk::algorithms::IAlgorithm** alg, 
+        const experimental::artec_scanner::FastMeshSimplificationAlgorithmPtr& settings, 
+        artec::sdk::base::ScannerType scanner_type);
+
     void create_loop_closure_algorithm(artec::sdk::algorithms::IAlgorithm** alg, 
         const experimental::artec_scanner::LoopClosureAlgorithmPtr& settings, 
         artec::sdk::base::ScannerType scanner_type);

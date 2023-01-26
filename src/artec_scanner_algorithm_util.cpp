@@ -136,6 +136,27 @@ void create_mesh_simplification_algorithm(artec::sdk::algorithms::IAlgorithm** a
     RR_CALL_ARTEC(asdk::createMeshSimplificationAlgorithm(alg, &s), "Could not create MeshSimplificationAlgorithm");
 }
 
+
+void create_fast_mesh_simplification_algorithm(artec::sdk::algorithms::IAlgorithm** alg, 
+        const experimental::artec_scanner::FastMeshSimplificationAlgorithmPtr& settings, 
+        artec::sdk::base::ScannerType scanner_type)
+{
+    RR_NULL_CHECK(settings);
+    asdk::FastMeshSimplificationSettings s;
+    s.scannerType = scanner_type;    
+    s.triangleNumber = settings->triangle_number;
+    s.keepBoundary = settings->keep_boundary.value != 0;
+    s.enableAdditionalCriteria = settings->enable_additional_criteria.value != 0;
+    s.enableDistanceThreshold = settings->enable_distance_threshold.value != 0;
+    s.distanceThreshold = settings->distance_threshold;
+    s.enableAngleThreshold = settings->enable_angle_threshold.value != 0;
+    s.angleThreshold = settings->angle_threshold;
+    s.enableAspectRatioThreshold = settings->enable_aspect_ratio_threshold != 0;
+    s.aspectRatioThreshold = settings->aspect_ratio_threshold;    
+
+    RR_CALL_ARTEC(asdk::createFastMeshSimplificationAlgorithm(alg, &s), "Could not create FastMeshSimplificationAlgorithm");
+}
+
 void create_loop_closure_algorithm(artec::sdk::algorithms::IAlgorithm** alg, 
         const experimental::artec_scanner::LoopClosureAlgorithmPtr& settings, 
         artec::sdk::base::ScannerType scanner_type)

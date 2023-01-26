@@ -58,6 +58,7 @@ namespace artec_scanner_robotraconteur_driver
 
 
     class ScanningProcedure;
+    class RunAlgorithms;
     
     class ArtecScannerImpl : public experimental::artec_scanner::ArtecScanner_default_impl, 
         public RR_ENABLE_SHARED_FROM_THIS<ArtecScannerImpl>
@@ -78,6 +79,7 @@ namespace artec_scanner_robotraconteur_driver
 
         public:
             friend class ScanningProcedure;
+            friend class RunAlgorithms;
 
             void Init(artec::sdk::capturing::IScanner* scanner);
 

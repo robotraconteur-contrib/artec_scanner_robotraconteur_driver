@@ -18,6 +18,7 @@
 
 #include "artec_scanner_util.h"
 #include "artec_scanning_procedure.h"
+#include "artec_scanner_algorithm.h"
 
 #include <boost/filesystem.hpp>
 
@@ -259,7 +260,11 @@ namespace artec_scanner_robotraconteur_driver
     RR::GeneratorPtr<rr_artec::RunAlgorithmsStatusPtr,void >
         ArtecScannerImpl::run_algorithms(int32_t input_model_handle, const RR::RRListPtr<RR::RRValue>& algorithms)
     {
-        throw RR::NotImplementedException("Not implemented");
+        auto model = RR_DYNAMIC_POINTER_CAST<RRArtecModel>(get_models(input_model_handle));
+        auto gen = RR_MAKE_SHARED<RunAlgorithms>(shared_from_this());
+        gen->Init(model, algorithms);
+        RR_ARTEC_LOG_INFO("RunAlgorithms generator returned to client. Call Next() to begin.");
+        return gen;
     }
 
 
