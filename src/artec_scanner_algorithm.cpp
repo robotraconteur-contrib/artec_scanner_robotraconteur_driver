@@ -41,7 +41,7 @@ RunAlgorithms::RunAlgorithms(boost::shared_ptr<ArtecScannerImpl> parent)
 void RunAlgorithms::Init(boost::shared_ptr<RRArtecModel> input_model, 
     const RobotRaconteur::RRListPtr<RobotRaconteur::RRValue>& algorithms)
 {
-    if (this->input_model->model->getSize() <= 0)
+    if (input_model->model->getSize() <= 0)
     {
         RR_ARTEC_LOG_ERROR("Model passed to run_algorithms does not contain any scans")
         throw RR::InvalidArgumentException("Model passed to run_algorithms does not contain any scans");
@@ -157,6 +157,7 @@ void RunAlgorithms::AsyncNext(boost::function<void(const experimental::artec_sca
 
         if (!started)
         {
+            RR_CALL_ARTEC(asdk::createCancellationTokenSource(&ct_source), "Error creating cancellation source");
             auto job_observer = new RunAlgorithmsJobObserver(shared_from_this(), 0);
             auto job = artec_algorithms.at(0);
             current_input_model = input_model;
@@ -226,6 +227,7 @@ void RunAlgorithms::AsyncClose(boost::function<void(const RobotRaconteur::RobotR
         return;
     }
     closed = true;
+    this->ct_source->cancel();
     lock.unlock();
     handler(nullptr);
 }
@@ -241,6 +243,7 @@ void RunAlgorithms::AsyncAbort(boost::function<void(const RobotRaconteur::RobotR
         return;
     }
     aborted = true;
+    this->ct_source->cancel();
     lock.unlock();
     handler(nullptr);
 }
