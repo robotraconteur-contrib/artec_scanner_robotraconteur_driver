@@ -56,7 +56,8 @@ namespace artec_scanner_robotraconteur_driver
         desc.registrationType = (asdk::RegistrationAlgorithmType)settings->registration_type;
         desc.pipelineConfiguration = settings->pipeline_configuration;
         desc.initialState = (asdk::ScanningState)settings->initial_state;
-        desc.scanningCallback = new ScanningProcedureObserver(shared_from_this());
+        observer = boost::make_shared<ScanningProcedureObserver>(shared_from_this());
+        desc.scanningCallback = observer.get();
         desc.ignoreRegistrationErrors = settings->ignore_registration_errors.value != 0;
         desc.captureTexture = (asdk::CaptureTextureMethod)settings->capture_texture;
         desc.captureTextureFrequency = settings->capture_texture_frequency;
@@ -91,9 +92,13 @@ namespace artec_scanner_robotraconteur_driver
 
         if (!started)
         {
-            auto job_observer = new ScanningProcedureJobObserver(shared_from_this());
-            RR_CALL_ARTEC(asdk::launchJob(scanning_procedure, &workset, job_observer), 
-                "Error launching scanning procedure");
+            job_observer = RR_MAKE_SHARED<ScanningProcedureJobObserver>(shared_from_this());
+            auto launch_res = asdk::launchJob(scanning_procedure, &workset, job_observer.get());
+            if (launch_res != asdk::ErrorCode_OK)
+            {
+                job_observer.reset();
+            }
+            RR_CALL_ARTEC(launch_res, "Error launching scanning procedure");
             started = true;
             auto ret = rr_artec::ScanningProcedureStatusPtr(new rr_artec::ScanningProcedureStatus());
             ret->action_status = rr_action::ActionStatusCode::running;
@@ -175,6 +180,7 @@ namespace artec_scanner_robotraconteur_driver
         RR_ARTEC_LOG_INFO("Scanning procedure artec job complete: " << (int32_t)result);
 
         boost::mutex::scoped_lock lock(this_lock);
+        artec_job_complete = true;
         artec_job_status = result;
         auto h = next_handler;
         next_handler.clear();
@@ -256,8 +262,9 @@ namespace artec_scanner_robotraconteur_driver
 
     void ScanningProcedureJobObserver::completed(artec::sdk::base::ErrorCode result)
     {
-        boost::shared_ptr<ScanningProcedure> p = parent.lock();
+        boost::shared_ptr<ScanningProcedure> p = parent;
         if (!p) return;
+        parent.reset();
         p->scan_job_complete(result);
     }
 

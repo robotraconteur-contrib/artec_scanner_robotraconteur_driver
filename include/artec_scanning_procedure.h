@@ -38,6 +38,8 @@ namespace artec_scanner_robotraconteur_driver
             artec::sdk::base::TRef<artec::sdk::base::IModel> input_container;
             artec::sdk::base::TRef<artec::sdk::base::ICancellationTokenSource> ct_source;
             RobotRaconteur::TimerPtr next_timer;
+            boost::shared_ptr<ScanningProcedureObserver> observer;
+            boost::shared_ptr<ScanningProcedureJobObserver> job_observer;
         public:
 
             friend class ScanningProcedureObserver;
@@ -87,7 +89,7 @@ namespace artec_scanner_robotraconteur_driver
 
     class ScanningProcedureJobObserver : public artec::sdk::base::JobObserverBase
     {
-        boost::weak_ptr<ScanningProcedure> parent;
+        boost::shared_ptr<ScanningProcedure> parent;
 
     public:
         ScanningProcedureJobObserver(boost::shared_ptr<ScanningProcedure> parent);
