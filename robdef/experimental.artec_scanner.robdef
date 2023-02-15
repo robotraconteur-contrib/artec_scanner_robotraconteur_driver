@@ -213,7 +213,7 @@ end
 
 object ArtecScanner
     function Mesh capture(bool with_texture)
-    function uint8[] capture_obj(bool with_texture)
+    function uint8[] capture_stl()
 
     function ScanningProcedureStatus{generator} run_scanning_procedure(ScanningProcedureSettings settings)
 

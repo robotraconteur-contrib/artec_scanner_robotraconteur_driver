@@ -87,7 +87,7 @@ namespace artec_scanner_robotraconteur_driver
 
             RR_INTRUSIVE_PTR<com::robotraconteur::geometry::shapes::Mesh > capture(RobotRaconteur::rr_bool with_texture) override;
 
-            RobotRaconteur::RRArrayPtr<uint8_t> capture_obj(RobotRaconteur::rr_bool with_texture) override;
+            RobotRaconteur::RRArrayPtr<uint8_t> capture_stl() override;
 
             RobotRaconteur::GeneratorPtr<experimental::artec_scanner::ScanningProcedureStatusPtr,void>
                 run_scanning_procedure(const experimental::artec_scanner::ScanningProcedureSettingsPtr& settings) 

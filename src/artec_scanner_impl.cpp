@@ -88,9 +88,26 @@ namespace artec_scanner_robotraconteur_driver
         return rr_mesh;
     }
 
-    RR::RRArrayPtr<uint8_t> ArtecScannerImpl::capture_obj(RR::rr_bool with_texture)
+    RR::RRArrayPtr<uint8_t> ArtecScannerImpl::capture_stl()
     {
-        throw RR::NotImplementedException("");
+        if (this->scanner == nullptr)
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to use scanner when no scanner is available");
+            throw RR::InvalidOperationException("No scanner available");
+        }
+        RR_ARTEC_LOG_INFO("Begin scanner capture");
+        TRef<asdk::IFrame> frame;
+        TRef<asdk::IFrameMesh> mesh;
+        frame = nullptr;
+        mesh = nullptr;
+        asdk::ErrorCode ec = asdk::ErrorCode_OK;
+        RR_CALL_ARTEC(scanner->capture( &frame, false), "Error capturing from scanner");
+        
+        RR_CALL_ARTEC(processor->reconstructAndTexturizeMesh( &mesh, frame ), "Error reconstructing mesh");
+        
+        auto stl_bytes = ConvertArtecMeshToStlBytes(mesh);
+        RR_ARTEC_LOG_INFO("Scanner capture complete");
+        return stl_bytes;
     }
 
     RR::GeneratorPtr<rr_artec::ScanningProcedureStatusPtr,void>
