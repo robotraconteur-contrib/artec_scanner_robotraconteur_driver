@@ -211,10 +211,23 @@ struct TexturizationAlgorithm
     field varvalue{string} extended
 end
 
+struct DeferredCapturePrepareStatus
+    field ActionStatusCode action_status
+    field uint32 completed_count
+    field uint32 failed_count
+end
+
 object ArtecScanner
     function Mesh capture(bool with_texture)
     function uint8[] capture_stl()
 
+    function int32 capture_deferred(bool with_texture)
+    function Mesh getf_deferred_capture(int32 deferred_capture_handle)
+    function uint8[] getf_deferred_capture_stl(int32 deferred_capture_handle)
+    function DeferredCapturePrepareStatus{generator} deferred_capture_prepare(int32[] deferred_capture_handles)
+    function DeferredCapturePrepareStatus{generator} deferred_capture_prepare_stl(int32[] deferred_capture_handles)
+    function void deferred_capture_free(int32[] deferred_capture_handles)
+    
     function ScanningProcedureStatus{generator} run_scanning_procedure(ScanningProcedureSettings settings)
 
     function void model_free(int32 model_handle)
@@ -226,6 +239,8 @@ object ArtecScanner
 
     function varvalue initialize_algorithm(int32 input_model_handle, string algorithm)
     function RunAlgorithmsStatus{generator} run_algorithms(int32 input_model_handle, varvalue{list} algorithms)
+
+    function void free_all()
 end
 
 object Model

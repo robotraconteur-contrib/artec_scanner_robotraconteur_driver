@@ -22,6 +22,8 @@
 #include "artec_scanner_algorithm_util.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/range/adaptor/map.hpp>
+#include <boost/range/algorithm/copy.hpp>
 
 namespace asdk {
     using namespace artec::sdk::base;
@@ -291,6 +293,46 @@ namespace artec_scanner_robotraconteur_driver
         return gen;
     }
 
+    int32_t ArtecScannerImpl::capture_deferred(RobotRaconteur::rr_bool with_texture)
+    {
+        throw RR::NotImplementedException("Not implemented");
+    }
+
+    com::robotraconteur::geometry::shapes::MeshPtr ArtecScannerImpl::getf_deferred_capture(int32_t deferred_capture_handle)
+    {
+        throw RR::NotImplementedException("Not implemented");
+    }
+
+    RobotRaconteur::RRArrayPtr<uint8_t > ArtecScannerImpl::getf_deferred_capture_stl(int32_t deferred_capture_handle)
+    {
+        throw RR::NotImplementedException("Not implemented");
+    }
+
+    void ArtecScannerImpl::deferred_capture_free(const RobotRaconteur::RRArrayPtr<int32_t>& deferred_capture_handle)
+    {
+        throw RR::NotImplementedException("Not implemented");
+    }
+
+    void ArtecScannerImpl::free_all()
+    {
+        std::vector<int32_t> model_handles;
+        {
+            boost::mutex::scoped_lock lock(this_lock);
+            boost::copy(models | boost::adaptors::map_keys, std::back_inserter(model_handles));
+        }
+
+        for(auto handle : model_handles)
+        {
+            try
+            {
+                model_free(handle);
+            }
+            catch (std::exception& e)
+            {
+                RR_ARTEC_LOG_ERROR("Error freeing model handle: " << e.what());
+            }
+        }
+    }
 
     RRArtecModel::RRArtecModel()
     {
