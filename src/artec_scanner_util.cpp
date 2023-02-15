@@ -179,7 +179,7 @@ namespace artec_scanner_robotraconteur_driver
     RobotRaconteur::RRArrayPtr<uint8_t> ConvertArtecMeshToStlBytes(artec::sdk::base::IMesh* mesh)
     {
         boost::filesystem::path temp = boost::filesystem::unique_path();
-        RR_CALL_ARTEC(asdk::io::saveStlMeshToFileAscii(temp.c_str(), mesh), "Could not save mesh to stl");
+        RR_CALL_ARTEC(asdk::io::saveStlMeshToFileBinary(temp.c_str(), mesh), "Could not save mesh to stl");
         std::ifstream file(temp.string(), std::ios::binary | std::ios::ate);
         std::streamsize size = file.tellg();
         file.seekg(0, std::ios::beg);
