@@ -20,8 +20,11 @@
 #include "artec_scanning_procedure.h"
 #include "artec_scanner_algorithm.h"
 #include "artec_scanner_algorithm_util.h"
+#include "artec_scanning_deferred.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/range/adaptor/map.hpp>
+#include <boost/range/algorithm/copy.hpp>
 
 namespace asdk {
     using namespace artec::sdk::base;
@@ -88,9 +91,26 @@ namespace artec_scanner_robotraconteur_driver
         return rr_mesh;
     }
 
-    RR::RRArrayPtr<uint8_t> ArtecScannerImpl::capture_obj(RR::rr_bool with_texture)
+    RR::RRArrayPtr<uint8_t> ArtecScannerImpl::capture_stl()
     {
-        throw RR::NotImplementedException("");
+        if (this->scanner == nullptr)
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to use scanner when no scanner is available");
+            throw RR::InvalidOperationException("No scanner available");
+        }
+        RR_ARTEC_LOG_INFO("Begin scanner capture");
+        TRef<asdk::IFrame> frame;
+        TRef<asdk::IFrameMesh> mesh;
+        frame = nullptr;
+        mesh = nullptr;
+        asdk::ErrorCode ec = asdk::ErrorCode_OK;
+        RR_CALL_ARTEC(scanner->capture( &frame, false), "Error capturing from scanner");
+        
+        RR_CALL_ARTEC(processor->reconstructAndTexturizeMesh( &mesh, frame ), "Error reconstructing mesh");
+        
+        auto stl_bytes = ConvertArtecMeshToStlBytes(mesh);
+        RR_ARTEC_LOG_INFO("Scanner capture complete");
+        return stl_bytes;
     }
 
     RR::GeneratorPtr<rr_artec::ScanningProcedureStatusPtr,void>
@@ -274,6 +294,153 @@ namespace artec_scanner_robotraconteur_driver
         return gen;
     }
 
+    int32_t ArtecScannerImpl::capture_deferred(RobotRaconteur::rr_bool with_texture)
+    {
+        if (this->scanner == nullptr)
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to use scanner when no scanner is available");
+            throw RR::InvalidOperationException("No scanner available");
+        }
+        RR_ARTEC_LOG_INFO("Begin scanner capture");
+        RRDeferredCapturePtr capture = boost::make_shared<RRDeferredCapture>();
+        capture->frame = nullptr;
+        RR_CALL_ARTEC(scanner->capture( &capture->frame, false), "Error capturing from scanner");
+        int32_t handle;
+        {
+            boost::mutex::scoped_lock lock(this_lock);
+            handle = ++handle_cnt;
+            deferred_captures.insert(std::make_pair(handle, capture));
+            capture->handle = handle;
+        }
+        RR_ARTEC_LOG_INFO("Deferred scanner capture complete stored deferred capture with handle: " << handle);
+        return handle;
+    }
+
+    void ArtecScannerImpl::deferred_capture_to_iframemesh(const RRDeferredCapturePtr& capture, asdk::IFrameMesh** frame_mesh)
+    {
+        if (this->scanner == nullptr)
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to use scanner when no scanner is available");
+            throw RR::InvalidOperationException("No scanner available");
+        }
+
+        TRef<asdk::IFrameProcessor> processor;
+        if ( scanner->createFrameProcessor( &processor ) != asdk::ErrorCode_OK )
+        {
+            return;
+        }
+        *frame_mesh = nullptr;
+        RR_CALL_ARTEC(processor->reconstructAndTexturizeMesh( frame_mesh, capture->frame ), "Error reconstructing mesh");
+    }
+
+    RRDeferredCapturePtr ArtecScannerImpl::get_deferred_capture(int32_t deferred_capture_handle)
+    {
+        boost::mutex::scoped_lock lock(this_lock);
+        auto e = deferred_captures.find(deferred_capture_handle);
+        if (e == deferred_captures.end())
+        {
+            RR_ARTEC_LOG_ERROR("Attempt to use invalid deferred_capture_handle: " << deferred_capture_handle);
+            throw RR::InvalidArgumentException("Invalid deferred_capture_handle");
+        }
+        return e->second;
+    }
+
+    com::robotraconteur::geometry::shapes::MeshPtr ArtecScannerImpl::getf_deferred_capture(int32_t deferred_capture_handle)
+    {
+        RRDeferredCapturePtr capture = get_deferred_capture(deferred_capture_handle);
+        if (capture->mesh)
+        {
+            RR_ARTEC_LOG_INFO("Deferred capture mesh returned from cached value");
+            return capture->mesh;
+        }
+        asdk::TRef<asdk::IFrameMesh> frame_mesh;
+        deferred_capture_to_iframemesh(capture, &frame_mesh);
+        auto rr_mesh = ConvertArtecFrameMeshToRR(frame_mesh);        
+        RR_ARTEC_LOG_INFO("Deferred capture to mesh complete");
+        boost::mutex::scoped_lock lock(this_lock);
+        capture->mesh = rr_mesh;
+        return rr_mesh;
+    }
+
+    RobotRaconteur::RRArrayPtr<uint8_t > ArtecScannerImpl::getf_deferred_capture_stl(int32_t deferred_capture_handle)
+    {
+        RRDeferredCapturePtr capture = get_deferred_capture(deferred_capture_handle);
+        if (capture->mesh_stl_bytes)
+        {
+            RR_ARTEC_LOG_INFO("Deferred capture stl mesh returned from cached value");
+            return capture->mesh_stl_bytes;
+        }
+        asdk::TRef<asdk::IFrameMesh> frame_mesh;
+        deferred_capture_to_iframemesh(capture, &frame_mesh);
+        auto stl_bytes = ConvertArtecMeshToStlBytes(frame_mesh);
+        RR_ARTEC_LOG_INFO("Deferred capture to stl bytes complete");
+        boost::mutex::scoped_lock lock(this_lock);
+        capture->mesh_stl_bytes = stl_bytes;
+        return stl_bytes;
+    }
+
+    void ArtecScannerImpl::deferred_capture_free(const RobotRaconteur::RRArrayPtr<int32_t>& deferred_capture_handle)
+    {
+        if (!deferred_capture_handle)
+        {
+            return;
+        }
+        boost::mutex::scoped_lock lock(this_lock);
+        for (auto k : *deferred_capture_handle)
+        {
+            deferred_captures.erase(k);
+        }
+    }
+
+    void ArtecScannerImpl::free_all()
+    {
+        std::vector<int32_t> model_handles;
+        {
+            boost::mutex::scoped_lock lock(this_lock);
+            deferred_captures.clear();
+            boost::copy(models | boost::adaptors::map_keys, std::back_inserter(model_handles));
+        }
+
+        for(auto handle : model_handles)
+        {
+            try
+            {
+                model_free(handle);
+            }
+            catch (std::exception& e)
+            {
+                RR_ARTEC_LOG_ERROR("Error freeing model handle: " << e.what());
+            }
+        }
+    }
+
+    RobotRaconteur::GeneratorPtr<experimental::artec_scanner::DeferredCapturePrepareStatusPtr,void> 
+        ArtecScannerImpl::deferred_capture_prepare(const RobotRaconteur::RRArrayPtr<int32_t >& deferred_capture_handles) 
+    {
+        RR_NULL_CHECK(deferred_capture_handles);
+        std::list<boost::shared_ptr<RRDeferredCapture> > work;
+        for(auto handle : *deferred_capture_handles)
+        {
+            work.push_back(get_deferred_capture(handle));
+        }
+        auto gen = RR_MAKE_SHARED<DeferredCapturePrepare>(shared_from_this());
+        gen->Init(std::move(work), true, false);
+        return gen;
+    }
+
+    RobotRaconteur::GeneratorPtr<experimental::artec_scanner::DeferredCapturePrepareStatusPtr,void> 
+        ArtecScannerImpl::deferred_capture_prepare_stl(const RobotRaconteur::RRArrayPtr<int32_t >& deferred_capture_handles)
+    {
+        RR_NULL_CHECK(deferred_capture_handles);
+        std::list<boost::shared_ptr<RRDeferredCapture> > work;
+        for(auto handle : *deferred_capture_handles)
+        {
+            work.push_back(get_deferred_capture(handle));
+        }
+        auto gen = RR_MAKE_SHARED<DeferredCapturePrepare>(shared_from_this());
+        gen->Init(std::move(work), false, true);
+        return gen;
+    }
 
     RRArtecModel::RRArtecModel()
     {
