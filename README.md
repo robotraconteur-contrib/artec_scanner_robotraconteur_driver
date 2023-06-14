@@ -1,4 +1,4 @@
-# Artec Scanner SDK
+# Artec Scanner Robot Raconteur Driver
 
 This repository contains a Robot Raconteur for Artec 3D scanners, based on the Artec SDK 2.0 and developed in C++.
 The driver has been tested for use with the Artec Space Spider scanner, but it may also work with other scanners
